@@ -1,0 +1,11 @@
+{
+    "[julia]": {
+        "editor.formatOnSave": true
+    },
+    "notebook.formatOnSave.enabled": false,
+    "notebook.codeActionsOnSave": {
+        "source.fixAll.ruff": true,
+        "source.organizeImports.ruff": true
+    },
+    "julia.lint.run": true
+}
