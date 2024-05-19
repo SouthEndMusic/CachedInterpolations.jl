@@ -1,0 +1,15 @@
+name = "SmoothInterpolation"
+uuid = "4412c578-8aba-4b04-8c8c-6ae573ccb792"
+authors = ["Bart de Koning <bart.dekoning@deltares.nl>"]
+version = "0.1.0"
+
+[deps]
+DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
+FindFirstFunctions = "64ca27bc-2ba2-4a57-88aa-44e436879224"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
+[targets]
+test = ["Test", "Random"]
