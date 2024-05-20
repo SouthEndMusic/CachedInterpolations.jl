@@ -1,4 +1,4 @@
-# Derivation of smoothed linear interpolation
+# Construction of smoothed linear interpolation
 
 ## Linear interpolation
 
@@ -140,4 +140,37 @@ We conclude:
 
 ## Extrapolation
 
+We define $\Delta \mathbf{p}_{1} = \Delta \mathbf{p}_{2}$ and $\Delta \mathbf{p}_{n+1} = \Delta \mathbf{p}_n$. This yields
+
+```math
+\begin{equation}
+    u_1(t) = \frac{\Delta u_2 }{\Delta t_2}(t - t_1) + u_1, \quad t \in \left[t_1, t_{1 + \frac{\lambda}{2}}\right]
+\end{equation}
+```
+
+and
+
+```math
+\begin{equation}
+    u_n(t) = \frac{\Delta u_n}{\Delta t_n}(t - t_n) + u_n, \quad t \in \left[t_{n - \frac{\lambda}{2}}, t_n\right].
+\end{equation}
+```
+
+This means that the interpolation is linear towards its boundaries and thus can be smoothly extended linearly.
+
 ## Evaluation
+
+Once it is determined that the input $t$ is in the interval $[t_{i-1}, t_i]$, the interpolation is evalued as follows:
+
+```math
+\begin{equation}
+    \begin{aligned}
+        u|_{[t_{i-1}, t_i]}(t) = 
+        \begin{cases}
+            u_{i-1}(t) &\text{if }& t_{i-1} \leq t \leq t_{i - 1 + \frac{\lambda}{2}} \\
+            u_{i-1} + \frac{\Delta u_i}{\Delta t_i}(t - t_{i-1}) &\text{if }& t_{i - 1 + \frac{\lambda}{2}} \leq t \leq t_{i - \frac{\lambda}{2}} \\
+            u_i(t) &\text{if }& t_{i - \frac{\lambda}{2}} \leq t \leq t_i
+        \end{cases}
+    \end{aligned}
+\end{equation}
+```
