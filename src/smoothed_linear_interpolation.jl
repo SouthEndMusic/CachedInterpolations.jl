@@ -37,8 +37,12 @@ function S(A::SmoothedLinearInterpolation, t, idx)
 end
 
 function U(A::SmoothedLinearInterpolation, t, idx)
-    (; Δu, ΔΔu, u_tilde, λ) = A.cache
     s = S(A, t, idx)
+    return U_s(A, s, idx)
+end
+
+function U_s(A::AbstractInterpolation, s, idx)
+    (; Δu, ΔΔu, u_tilde, λ) = A.cache
     Δuᵢ = Δu[idx]
     ΔΔuᵢ = ΔΔu[idx]
     return λ / 2 * ΔΔuᵢ * s^2 + λ * Δuᵢ * s + u_tilde[2 * idx - 1]
