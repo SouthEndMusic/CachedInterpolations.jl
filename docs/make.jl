@@ -10,6 +10,7 @@ makedocs(;
             "Integrating" => "construction/integrating.md",
             "Inverting the integral" => "construction/inverting_the_integral.md",
         ],
+        "API" => "api.md",
     ],
     format = Documenter.HTML(;
         mathengine = Documenter.MathJax(
