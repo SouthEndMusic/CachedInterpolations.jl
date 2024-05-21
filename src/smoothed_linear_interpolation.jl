@@ -1,3 +1,20 @@
+"""
+    SmoothedLinearInterpolation(u, t; λ = 0.25, extrapolate = false)
+
+The method of interpolating between the data points using a linear polynomial, with an anterval around the
+corner points being replaced by a smooth spline section.
+
+## Arguments
+
+  - `u`: data points.
+  - `t`: time points.
+
+## Keyword Arguments
+
+  - `extrapolate`: boolean value to allow extrapolation. Defaults to `false`.
+  - `λ`: The relative size of the spline interval. The interval extents a fraction `λ/2` towards
+    the neighbouring time points.
+"""
 struct SmoothedLinearInterpolation{uType, tType, λType <: Real, T} <:
        AbstractInterpolation{T}
     u::uType
@@ -16,11 +33,23 @@ function SmoothedLinearInterpolation(
     extrapolate::Bool = false,
 )::SmoothedLinearInterpolation
     u, t = munge_data(u, t)
-    @assert 0 <= λ <= 1
+    # Make sure the parameter λ is in the right range
+    @assert 0 <= λ <= 1 "The parameter λ must be in the interval [0,1], got $λ."
     cache = SmoothedLinearInterpolationCache(u, t, λ)
     return SmoothedLinearInterpolation(u, t, cache, λ, extrapolate)
 end
 
+"""
+    S(A, t, idx)
+
+Compute the spline parameter `s` from from the time `t`.
+
+    ## Arguments
+
+    - `A`: The `SmoothedLinearInterpolation` object
+    - `t`: The time point
+    - `idx`: The index indicating which spline section
+"""
 function S(A::SmoothedLinearInterpolation, t, idx)
     (; Δt, ΔΔt, t_tilde, λ) = A.cache
     Δtᵢ = Δt[idx]
@@ -36,11 +65,33 @@ function S(A::SmoothedLinearInterpolation, t, idx)
     end
 end
 
+"""
+    S(A, t, idx)
+
+Compute the spline value `u` at the time `t`.
+
+    ## Arguments
+
+    - `A`: The `SmoothedLinearInterpolation` object
+    - `t`: The time point
+    - `idx`: The index indicating which spline section
+"""
 function U(A::SmoothedLinearInterpolation, t, idx)
     s = S(A, t, idx)
     return U_s(A, s, idx)
 end
 
+"""
+    S(A, t, idx)
+
+Compute the spline value `u` from the spline parameter `s`.
+
+    ## Arguments
+
+    - `A`: The `SmoothedLinearInterpolation` object
+    - `s`: The spline parameter value
+    - `idx`: The index indicating which spline section
+"""
 function U_s(A::AbstractInterpolation, s, idx)
     (; Δu, ΔΔu, u_tilde, λ) = A.cache
     Δuᵢ = Δu[idx]
