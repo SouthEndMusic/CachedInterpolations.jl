@@ -19,3 +19,10 @@ makedocs(;
         ),
     ),
 )
+
+deploydocs(;
+    repo = "github.com/SouthEndmusic/SmoothInterpolation.jl.git",
+    target = "build",
+    branch = "gh-pages",
+    key = ENV["DOCUMENTER_KEY"],
+)
