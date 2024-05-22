@@ -37,9 +37,5 @@ jobs:
                 cache-compiled: "true"
                 cache-registries: "true"
             - uses: julia-actions/julia-buildpkg@v1
-              with:
-                project: core
             - uses: julia-actions/julia-runtest@v1
-              with:
-                project: core
                 
