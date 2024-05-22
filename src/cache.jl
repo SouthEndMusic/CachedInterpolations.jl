@@ -21,15 +21,15 @@ function get_spline_ends(u, Δu, λ)
 end
 
 function SmoothedLinearInterpolationCache(u, t, λ)::SmoothedLinearInterpolationCache
-    Δu = u[2:end] - u[1:(end - 1)]
-    Δt = t[2:end] - t[1:(end - 1)]
+    Δu = diff(u)
+    Δt = diff(t)
     @assert !any(iszero.(Δt))
     pushfirst!(Δt, Δt[1])
     push!(Δt, Δt[end])
     pushfirst!(Δu, Δu[1])
     push!(Δu, Δu[end])
-    ΔΔu = Δu[2:end] - Δu[1:(end - 1)]
-    ΔΔt = Δt[2:end] - Δt[1:(end - 1)]
+    ΔΔu = diff(Δu)
+    ΔΔt = diff(Δt)
     u_tilde = get_spline_ends(u, Δu, λ)
     t_tilde = get_spline_ends(t, Δt, λ)
     linear_slope = Δu ./ Δt
