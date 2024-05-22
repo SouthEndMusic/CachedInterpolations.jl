@@ -1,12 +1,4 @@
-using Test, InterpolationConcepts
-using Random: seed!
+using SafeTestsets
 
-seed!(1)
-u = rand(10)
-t = cumsum(rand(10))
-t_eval = cumsum(rand(15))
-
-@testset "SomeStuff" begin
-    itp = SmoothedLinearInterpolation(u, t; extrapolate = true)
-    itp.(t_eval)
-end
+@safetestset "Interpolation" include("interpolation.jl")
+@safetestset "Extrapolation" include("extrapolation.jl")

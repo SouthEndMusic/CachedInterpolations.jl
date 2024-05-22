@@ -1,0 +1,10 @@
+using SmoothInterpolation
+
+# @testset "SmoothedLinearInterpolation" begin
+#     u = [1.0, 2.0, 3.0, 4.0]
+#     t = [1.0, 2.0, 3.0, 4.0]
+
+#     itp = SmoothedLinearInterpolation(u, t; extrapolate = true)
+#     @test itp(0.0) ≈ 0.0
+#     @test itp(5.0) ≈ 5.0
+# end
