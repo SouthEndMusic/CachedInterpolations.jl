@@ -42,6 +42,5 @@ jobs:
                 coverage: true
             - uses: codecov/codecov-action@v4.0.1
               with:
-                files: lcov.info
                 token: ${{ secrets.CODECOV_TOKEN }}
                 
