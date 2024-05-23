@@ -2,7 +2,7 @@
 
 ## Smoothed linear interpolation
 
-### An example of smooth linear interpolation
+### An example of smoothed linear interpolation
 
 ```@example 1
 import Random # hide
