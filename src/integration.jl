@@ -1,38 +1,87 @@
-function integrate_spline_section(A::SmoothedLinearInterpolation, idx::Number, t::Number) end
 
+function integrate_spline_section(A::SmoothedLinearInterpolation, idx::Number, t::Number)
+    (; Δu, Δt, ΔΔu, ΔΔt, u_tilde, λ) = A.cache
+    s = S(A, t, idx)
+
+    i = 2 * idx
+    Δtᵢ = Δt[idx]
+    Δuᵢ = Δu[idx]
+    ΔΔuᵢ = ΔΔu[idx]
+    ΔΔtᵢ = ΔΔt[idx]
+    f = u_tilde[i - 1] / λ
+
+    a = 3 * ΔΔtᵢ * ΔΔuᵢ
+    b = 4 * Δtᵢ * ΔΔuᵢ + 8 * ΔΔtᵢ * Δuᵢ
+    c = 12 * ΔΔtᵢ * f + 12 * Δtᵢ * Δuᵢ
+    d = 24 * Δtᵢ * f
+
+    return λ^2 * (a * s^4 + b * s^3 + c * s^2 + d * s) / 24
+end
+
+DataInterpolations.samples(A::SmoothedLinearInterpolation) = (0, 1)
 function DataInterpolations._integral(
-    A::SmoothedLinearInterpolation{uType},
+    A::SmoothedLinearInterpolation,
     idx::Number,
     t::Number,
 )
     (; u_tilde, t_tilde) = A.cache
-    out = zero(uType)
-    i = 2 * idx
 
+    # idx of smallest idx such that A.t[idx] >= t
+    # NOTE: I don't understand the behavior of the given idx
+    # so compute it myself
+    idx = searchsortedfirstcorrelated(A.t, t, idx)
+    # Makes sure the derivative is properly computed at t = A.t[1]
+    idx = max(2, idx)
+
+    i = 2 * idx
+    u_tildeᵢ₋₃ = u_tilde[i - 3]
+    u_tildeᵢ₋₂ = u_tilde[i - 2]
+
+    t_tildeᵢ₋₃ = t_tilde[i - 3]
     t_tildeᵢ₋₂ = t_tilde[i - 2]
 
-    if t < t_tildeᵢ₋₂
-        out += integrate_spline_section(A, ..., t_tildeᵢ₋₂)
-        out -= integrate_spline_section(A, ..., A.t[idx])
-        return out
-    else
-        t_tildeᵢ₋₁ = t_tilde[i - 1]
-        out += integrate_spline_section(A, ..., t_tildeᵢ₋₂)
-        out -= integrate_spline_section(A, ..., t_tildeᵢ₋₁)
-    end
+    extrapolating = (idx == length(A.t) + 1)
 
-    t_tildeᵢ = t_tilde[i]
-
-    if t < t_tildeᵢ
+    # Integration of lower spline section
+    if idx == 2
+        # Special case of the first (half) spline section
+        # which is linear
+        if t <= t_tildeᵢ₋₂
+            u_t = A(t)
+            out = 0.5 * (t - t_tildeᵢ₋₃) * (u_t + u_tildeᵢ₋₃)
+            return out
+        else
+            out = 0.5 * (t_tildeᵢ₋₂ - t_tildeᵢ₋₃) * (u_tildeᵢ₋₂ + u_tildeᵢ₋₃)
+        end
+    elseif idx == length(A.t) + 1
+        # Special case of upper extrapolation
         u_t = A(t)
-        u_tildeᵢ₋₁ = u_tilde[i - 1]
-        out += 0.5 * (t - t_tildeᵢ₋₁) * (u_t + u_tildeᵢ₋₁)
+        out = 0.5 * (t - t_tildeᵢ₋₃) * (u_t + u_tildeᵢ₋₃)
         return out
     else
-        u_tildeᵢ₋₁ = u_tilde[i]
-        out += 0.5 * (t_tildeᵢ - t_tildeᵢ₋₁) * (u_tildeᵢ + u_tildeᵢ₋₁)
+        if t <= t_tildeᵢ₋₂
+            out = integrate_spline_section(A, idx - 1, t)
+            out -= integrate_spline_section(A, idx - 1, A.t[idx - 1])
+            return out
+        else
+            out = integrate_spline_section(A, idx - 1, t_tildeᵢ₋₂)
+            out -= integrate_spline_section(A, idx - 1, A.t[idx - 1])
+        end
     end
 
-    out += integrate_spline_section(A, ..., t)
+    u_tildeᵢ₋₁ = u_tilde[i - 1]
+    t_tildeᵢ₋₁ = t_tilde[i - 1]
+
+    # Integration of linear section
+    if t <= t_tildeᵢ₋₁
+        u_t = A(t)
+        out += 0.5 * (t - t_tildeᵢ₋₂) * (u_t + u_tildeᵢ₋₂)
+        return out
+    else
+        out += 0.5 * (t_tildeᵢ₋₁ - t_tildeᵢ₋₂) * (u_tildeᵢ₋₁ + u_tildeᵢ₋₂)
+    end
+
+    # Integration of upper spline section
+    out += integrate_spline_section(A, idx, t)
     return out
 end
