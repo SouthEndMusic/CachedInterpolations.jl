@@ -18,7 +18,7 @@ function integrate_spline_section(A::SmoothedLinearInterpolation, idx::Number, t
     return λ^2 * (a * s^4 + b * s^3 + c * s^2 + d * s) / 24
 end
 
-DataInterpolations.samples(A::SmoothedLinearInterpolation) = (0, 1)
+DataInterpolations.samples(A::SmoothedLinearInterpolation) = (-1, 0)
 function DataInterpolations._integral(
     A::SmoothedLinearInterpolation,
     idx::Number,
@@ -26,12 +26,12 @@ function DataInterpolations._integral(
 )
     (; u_tilde, t_tilde) = A.cache
 
+    if t == A.t[idx]
+        return zero(eltype(A.u))
+    end
+
     # idx of smallest idx such that A.t[idx] >= t
-    # NOTE: I don't understand the behavior of the given idx
-    # so compute it myself
     idx = searchsortedfirstcorrelated(A.t, t, idx)
-    # Makes sure the derivative is properly computed at t = A.t[1]
-    idx = max(2, idx)
 
     i = 2 * idx
     u_tildeᵢ₋₃ = u_tilde[i - 3]
@@ -39,8 +39,6 @@ function DataInterpolations._integral(
 
     t_tildeᵢ₋₃ = t_tilde[i - 3]
     t_tildeᵢ₋₂ = t_tilde[i - 2]
-
-    extrapolating = (idx == length(A.t) + 1)
 
     # Integration of lower spline section
     if idx == 2
@@ -56,7 +54,7 @@ function DataInterpolations._integral(
     elseif idx == length(A.t) + 1
         # Special case of upper extrapolation
         u_t = A(t)
-        out = 0.5 * (t - t_tildeᵢ₋₃) * (u_t + u_tildeᵢ₋₃)
+        out = 0.5 * (t - A.t[end]) * (u_t + A.u[end])
         return out
     else
         if t <= t_tildeᵢ₋₂
