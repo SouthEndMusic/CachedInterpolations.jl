@@ -61,7 +61,8 @@ function DataInterpolations._interpolate(
     iguess,
 )
     n_points = length(A.t)
-    (; u, t, Δu, Δt, ΔΔu, ΔΔt, u_tilde, λ) = A.cache
+    (; u, t, Δu, Δt, λ) = A.cache
+    (; a, b, c, d, p, q) = A.cache_integration
 
     # idx of smallest idx such that A.t[idx] >= t
     # Note that A.t denotes integrated values
@@ -78,44 +79,49 @@ function DataInterpolations._interpolate(
         @assert Vdiff >= 0
 
         i = Int(idx // 2)
-        Δtᵢ = Δt[i]
-        Δuᵢ = Δu[i]
-        ΔΔuᵢ = ΔΔu[i]
-        ΔΔtᵢ = ΔΔt[i]
+        aᵢ = a[i]
+        bᵢ = b[i]
+        cᵢ = c[i]
+        dᵢ = d[i]
+        pᵢ = p[i]
+        qᵢ = q[i]
 
-        f = Δuᵢ + u_tilde[idx - 1] / λ
-
-        # Independent of V, can be cached
-        a = 3 * ΔΔtᵢ * ΔΔuᵢ
-        b = 4 * Δtᵢ * ΔΔuᵢ
-        c = 12 * ΔΔtᵢ * f
-        d = 24 * Δtᵢ * f
-
-        e = complex(-24 * Vdiff / λ^2)
-
-        # Independent of V, can be cached
-        p = (8 * a * c - 3 * b^2) / (8 * a^2)
-        q = (b^3 - 4 * a * b * c + 8 * a^2 * d) / (8 * a^3)
-
-        Δ₀ = c^2 - 3 * b * d + 12 * a * e
-        Δ₁ = 2 * c^3 - 9 * b * c * d + 27 * b^2 * e + 27 * a * d^2 - 72 * a * c * e
+        Δ₀ = Complex(cᵢ^2 - 3 * bᵢ * dᵢ - 12 * aᵢ * Vdiff)
+        Δ₁ = Complex(
+            2 * cᵢ^3 +
+            9 * bᵢ * cᵢ * dᵢ +
+            27 * bᵢ^2 * Vdiff +
+            27 * aᵢ * dᵢ^2 +
+            72 * aᵢ * cᵢ * Vdiff,
+        )
         Q = ((Δ₁ + sqrt(Δ₁^2 - 4 * Δ₀^3)) / 2)^(1 / 3)
-        S = sqrt(-2 * p / 3 + (Q + Δ₀ / Q) / (3 * a)) / 2
+        S = sqrt(-2 * pᵢ / 3 + (Q + Δ₀ / Q) / (3 * aᵢ)) / 2
 
-        root = sqrt(-4 * S^2 - 2 * p - q / S)
-        s = real(-b / (4 * a) + S + root / 2)
-        if !(0 <= s <= 1)
-            s = real(-b / (4 * a) + S - root / 2)
+        root = sqrt(-4 * S^2 - 2 * pᵢ - qᵢ / S)
+
+        # Check the 4 possible roots for being valid;
+        # real and in [0,1]
+        s1 = -bᵢ / (4 * aᵢ) + S + root / 2
+        if valid(s1)
+            return U_s(A, real(s1), i)
         end
-        if !(0 <= s <= 1)
-            s = real(-b / (4 * a) - S + root / 2)
+
+        s2 = -bᵢ / (4 * aᵢ) + S - root / 2
+        if valid(s2)
+            return U_s(A, real(s2), i)
         end
-        if !(0 <= s <= 1)
-            s = real(-b / (4 * a) - S - root / 2)
+
+        s3 = -bᵢ / (4 * aᵢ) - S + root / 2
+        if valid(s3)
+            return U_s(A, real(s3), i)
         end
-        @assert (0 <= s <= 1)
-        U_s(A, s, i)
-        a * s^4 + b * s^3 + c * s^2 + d * s + e
+
+        s4 = -bᵢ / (4 * aᵢ) - S - root / 2
+        if valid(s4)
+            return U_s(A, real(s4), i)
+        end
+
+        error("No valid root found, got $([s1,s2,s3,s4]).")
     else
         Vdiff = (V - A.t[idx - 1])
         @assert Vdiff >= 0
