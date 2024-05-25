@@ -59,3 +59,24 @@ function U_s(A::AbstractInterpolation, s, idx)
     ΔΔuᵢ = ΔΔu[idx]
     return λ / 2 * ΔΔuᵢ * s^2 + λ * Δuᵢ * s + u_tilde[2 * idx - 1]
 end
+
+function get_quartic_coefficients(A::SmoothedLinearInterpolation, idx::Number)
+    (; Δu, Δt, ΔΔu, ΔΔt, u_tilde, λ) = A.cache
+
+    i = 2 * idx
+    Δtᵢ = Δt[idx]
+    Δuᵢ = Δu[idx]
+    ΔΔuᵢ = ΔΔu[idx]
+    ΔΔtᵢ = ΔΔt[idx]
+    f₁ = u_tilde[i - 1] / λ
+    f₂ = λ^2 / 24
+
+    a = f₂ * (3 * ΔΔtᵢ * ΔΔuᵢ)
+    b = f₂ * (4 * Δtᵢ * ΔΔuᵢ + 8 * ΔΔtᵢ * Δuᵢ)
+    c = f₂ * (12 * ΔΔtᵢ * f₁ + 12 * Δtᵢ * Δuᵢ)
+    d = f₂ * (24 * Δtᵢ * f₁)
+
+    return a, b, c, d
+end
+
+valid(s) = (imag(s) ≈ 0) && (0 <= real(s) <= 1)
