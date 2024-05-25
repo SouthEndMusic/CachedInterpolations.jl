@@ -7,4 +7,19 @@
 
 ## Installation
 
-n/a
+Currently you can only install as below.
+
+```
+pkg> dev https://github.com/SouthEndMusic/SmoothInterpolation.jl
+```
+
+## Supported features
+
+Not all features for interpolation objects from `DataInterpolations.jl` are currently supported.
+
+|                                     | Evaluation | Derivative    | Integration                                |
+| ----------------------------------- | ---------- | ------------- | ------------------------------------------ |
+| `SmoothedLinearInterpolation`       | Supported  | Not supported | Only `DataInterpolations.integral(itp, t)` |
+| `SmoothedLinearInterpolationIntInv` | Coming up  | Not supported | Not supported                              |
+
+If you wish to use one of the currently unsupported features, please [write an issue](https://github.com/SouthEndMusic/SmoothInterpolation.jl/issues).
