@@ -1,4 +1,14 @@
+"""
+    integrate_spline_section(A::SmoothedLinearinterpolation, idx::Number, t::Number)
 
+Integrate the idx-th spline section from its lower time bound up to t
+
+## Arguments
+
+ - `A`: SmoothedLinearInterpolation object
+ - `idx`: Index of the spline section
+ - `t`: upper integration bound
+"""
 function integrate_spline_section(A::SmoothedLinearInterpolation, idx::Number, t::Number)
     (; Δu, Δt, ΔΔu, ΔΔt, u_tilde, λ) = A.cache
     s = S(A, t, idx)
