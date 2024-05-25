@@ -3,10 +3,27 @@ struct SmoothedLinearInterpolationIntInv{uType, tType, λType <: Real, T} <:
     u::uType
     t::tType
     cache::SmoothedLinearInterpolationCache{uType, tType, λType}
+    cache_integration::SmoothedLinearInterpolationIntInvCache{uType}
     extrapolate::Bool
-    function SmoothedLinearInterpolationIntInv(u, t, cache, λ, extrapolate)
-        return new{typeof(u), typeof(t), typeof(λ), eltype(u)}(u, t, cache, extrapolate)
+    function SmoothedLinearInterpolationIntInv(u, t, cache, cache_int, λ, extrapolate)
+        return new{typeof(u), typeof(t), typeof(λ), eltype(u)}(
+            u,
+            t,
+            cache,
+            cache_int,
+            extrapolate,
+        )
     end
+end
+
+function SmoothedLinearInterpolationIntInv(
+    A::SmoothedLinearInterpolation,
+)::SmoothedLinearInterpolationIntInv
+    (; cache, extrapolate) = A
+    t = integrate_sections(cache)
+    u = cache.t_tilde
+    cache_int = SmoothedLinearInterpolationIntInvCache(A)
+    return SmoothedLinearInterpolationIntInv(u, t, cache, cache_int, cache.λ, extrapolate)
 end
 
 function integrate_sections(cache::SmoothedLinearInterpolationCache)
@@ -36,15 +53,6 @@ function integrate_sections(cache::SmoothedLinearInterpolationCache)
     end
     U = cumsum(U)
     return U
-end
-
-function SmoothedLinearInterpolationIntInv(
-    itp::SmoothedLinearInterpolation,
-)::SmoothedLinearInterpolationIntInv
-    (; cache, extrapolate) = itp
-    t = integrate_sections(cache)
-    u = cache.t_tilde
-    return SmoothedLinearInterpolationIntInv(u, t, cache, cache.λ, extrapolate)
 end
 
 function DataInterpolations._interpolate(
