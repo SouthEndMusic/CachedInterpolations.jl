@@ -7,6 +7,8 @@ using FindFirstFunctions: searchsortedfirstcorrelated
 include("cache.jl")
 include("smoothed_linear_interpolation.jl")
 include("integration_inverse.jl")
+include("integration.jl")
+include("utils.jl")
 
 export SmoothedLinearInterpolation, SmoothedLinearInterpolationIntInv
 
