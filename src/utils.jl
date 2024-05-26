@@ -79,4 +79,4 @@ function get_quartic_coefficients(A::SmoothedLinearInterpolation, idx::Number)
     return a, b, c, d
 end
 
-valid(s) = (imag(s) ≈ 0) && (0 <= real(s) <= 1)
+valid(s) = isapprox(imag(s), 0; atol = 1e-5) && (0 <= real(s) <= 1)
