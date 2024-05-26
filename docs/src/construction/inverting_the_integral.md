@@ -20,7 +20,7 @@ For linear sections this yields a quadratic equation in $t$ with solution
 
 ```math
 \begin{equation}
-    t = t_I + \left[-\frac{u_I}{\Delta u_{I+1}} + \text{sign}\left(\frac{u_{I+1}}{u_{I+1}}\right)\sqrt{\left(\frac{u_I}{\Delta u_{I+1}}\right)^2 +\lambda\left(\frac{u_I}{\Delta u_{I+1}} + \frac{\lambda}{4}\right) +2\frac{V - U_{J-1}}{\Delta t_{I+1}\Delta u_{I+1}}}\right]\Delta t_{I+1}.
+    t = t_I + \left[-\frac{u_I}{\Delta u_{I+1}} + \text{sign}\left(\frac{u_{I+1}}{\Delta u_{I+1}}\right)\sqrt{\left(\frac{u_I}{\Delta u_{I+1}}\right)^2 +\lambda\left(\frac{u_I}{\Delta u_{I+1}} + \frac{\lambda}{4}\right) +2\frac{V - U_{J-1}}{\Delta t_{I+1}\Delta u_{I+1}}}\right]\Delta t_{I+1}.
 \end{equation}
 ```
 
@@ -32,7 +32,7 @@ For linear sections this yields a quadratic equation in $t$ with solution
         3(\Delta t_{I+1} - \Delta t_I)(\Delta u_{I+1} - \Delta u_I)s^4 + \\
         4\Delta t_I (\Delta u_{I+1} - \Delta u_I) s^3 + \\
         12(\Delta t_{I+1} - \Delta t_I)\left(\Delta u_I + \frac{u_{I - \frac{\lambda}{2}}}{\lambda}\right)s^2 + \\
-        24 \Delta u_I \left(\Delta u_I + \frac{u_{I - \frac{\lambda}{2}}}{\lambda}\right) s + \\
+        24 \Delta t_I \left(\Delta u_I + \frac{u_{I - \frac{\lambda}{2}}}{\lambda}\right) s + \\
         - \frac{24}{\lambda^2}(V - U_{J-1}) = 0
     \end{aligned}
 \end{equation}
