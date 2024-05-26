@@ -61,12 +61,8 @@ struct SmoothedLinearInterpolationIntInvCache{uType}
 end
 
 function SmoothedLinearInterpolationIntInvCache(A)
-    coeffs = hcat(
-        [
-            collect(get_quartic_coefficients(A, idx)) for
-            idx in eachindex(A.t) if idx ∉ [1, length(A.t)]
-        ]...,
-    )
+    coeffs =
+        hcat([collect(get_quartic_coefficients(A, idx)) for idx in eachindex(A.cache.t)]...)
     a, b, c, d = collect.(eachrow(coeffs))
     degree = fill(UInt8(4), length(a))
 

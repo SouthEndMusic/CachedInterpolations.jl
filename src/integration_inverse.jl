@@ -38,7 +38,6 @@ function DataInterpolations._interpolate(
     # idx of smallest idx such that A.t[idx] >= t
     # Note that A.t denotes integrated values
     idx = searchsortedfirstcorrelated(A.t, V, iguess)
-    @show V
 
     if idx == 1
         @assert V >= 0 "Cannot invert intagral for negative input."
@@ -69,45 +68,20 @@ function DataInterpolations._interpolate(
         bᵢ = b[i]
         cᵢ = c[i]
         dᵢ = d[i]
+        e = -Vdiff
         pᵢ = p[i]
         qᵢ = q[i]
 
-        Δ₀ = Complex(cᵢ^2 - 3 * bᵢ * dᵢ - 12 * aᵢ * Vdiff)
-        Δ₁ = Complex(
-            2 * cᵢ^3 - 9 * bᵢ * cᵢ * dᵢ - 27 * bᵢ^2 * Vdiff +
-            27 * aᵢ * dᵢ^2 +
-            72 * aᵢ * cᵢ * Vdiff,
-        )
-        Q = ((Δ₁ + sqrt(Δ₁^2 - 4 * Δ₀^3)) / 2)^(1 / 3)
-        S = sqrt(-2 * pᵢ / 3 + (Q + Δ₀ / Q) / (3 * aᵢ)) / 2
-
-        root1 = sqrt(-4 * S^2 - 2 * pᵢ + qᵢ / S)
-        root2 = sqrt(-4 * S^2 - 2 * pᵢ - qᵢ / S)
-
         # Check the 4 possible roots for being valid;
         # real and in [0,1]
-        s1 = -bᵢ / (4 * aᵢ) - S + root1 / 2
-        if valid(s1)
-            return U_s(A, real(s1), i)
+        root_iterator = RootIterator(aᵢ, bᵢ, cᵢ, dᵢ, e, pᵢ, qᵢ)
+        for s in root_iterator
+            if valid(s)
+                return T(A, real(s), i)
+            end
         end
 
-        s2 = -bᵢ / (4 * aᵢ) - S - root1 / 2
-        if valid(s2)
-            return U_s(A, real(s2), i)
-        end
-
-        s3 = -bᵢ / (4 * aᵢ) + S + root2 / 2
-        if valid(s3)
-            return U_s(A, real(s3), i)
-        end
-
-        s4 = -bᵢ / (4 * aᵢ) + S - root2 / 2
-        if valid(s4)
-            return U_s(A, real(s4), i)
-        end
-
-        @show aᵢ
-        error("No valid root found, got $([s1,s2,s3,s4]).")
+        error("No valid root found, got $(collect(root_iterator)).")
     else
         # Linear section of SmoothedLinearInterpolation
         Vdiff = (V - A.t[idx - 1])

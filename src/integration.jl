@@ -10,7 +10,6 @@ Integrate the idx-th spline section from its lower time bound up to t
  - `t`: upper integration bound
 """
 function integrate_spline_section(A::SmoothedLinearInterpolation, idx::Number, t::Number)
-    (; λ) = A.cache
     s = S(A, t, idx)
     a, b, c, d = get_quartic_coefficients(A, idx)
 

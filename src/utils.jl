@@ -80,3 +80,40 @@ function get_quartic_coefficients(A::SmoothedLinearInterpolation, idx::Number)
 end
 
 valid(s) = isapprox(imag(s), 0; atol = 1e-5) && (0 <= real(s) <= 1)
+
+function T(A::SmoothedLinearInterpolationIntInv, s, idx)
+    (; Δt, ΔΔt, t_tilde, λ) = A.cache
+    Δtᵢ = Δt[idx]
+    ΔΔtᵢ = ΔΔt[idx]
+    return λ / 2 * ΔΔtᵢ * s^2 + λ * Δtᵢ * s + t_tilde[2 * idx - 1]
+end
+
+struct RootIterator{T}
+    ab_part::T
+    S::T
+    p::T
+    q::T
+end
+
+function RootIterator(a, b, c, d, e, p, q)
+    ab_part = Complex(-b / (4 * a))
+    Δ₀ = Complex(c^2 - 3 * b * d + 12 * a * e)
+    Δ₁ = Complex(2 * c^3 - 9 * b * c * d + 27 * b^2 * e + 27 * a * d^2 - 72 * a * c * e)
+    Q = ((Δ₁ + sqrt(Δ₁^2 - 4 * Δ₀^3)) / 2)^(1 / 3)
+    S = sqrt(-2 * p / 3 + (Q + Δ₀ / Q) / (3 * a)) / 2
+    return RootIterator(ab_part, S, Complex(p), Complex(q))
+end
+
+function quartic_root(root_iterator::RootIterator, state)
+    (; ab_part, S, p, q) = root_iterator
+    sign_1 = state < 3 ? -1 : 1
+    sign_2 = (-1)^state
+    root = sqrt(-4S^2 - 2p - sign_1 * q / S)
+    out = ab_part + sign_1 * S + sign_2 * 0.5 * root
+    return out
+end
+
+Base.length(::RootIterator) = 4
+Base.iterate(root_iterator::RootIterator) = (quartic_root(root_iterator, 1), 2)
+Base.iterate(root_iterator::RootIterator, state) =
+    state > 4 ? nothing : (quartic_root(root_iterator, state), state + 1)
