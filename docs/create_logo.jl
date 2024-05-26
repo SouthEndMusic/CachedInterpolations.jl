@@ -1,13 +1,16 @@
 using SmoothInterpolation
 using Luxor
-Drawing(500, 500, normpath(@__DIR__, "src/assets/logo.svg"))
+
+height = 500
+wide = false
+Drawing(wide ? 2 * height : height, height, normpath(@__DIR__, "src/assets/logo.svg"))
 origin()
 
 # Distance of dots from the origin
-R = 200
+R = 0.4 * height
 
 # Radius of dots
-r = 25
+r = 0.05 * height
 
 # Dot coordinates
 phi = [(i + 1) * 2π / 3 - π / 2 for i in 1:3]
