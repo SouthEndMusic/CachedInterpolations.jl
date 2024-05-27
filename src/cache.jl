@@ -67,8 +67,8 @@ function SmoothedLinearInterpolationIntInvCache(A)
     # The degree is 5 minus the index of the first (≈) nonzero coefficient
     degree = 5 .- findfirst.(coef -> !isapprox(coef, 0; atol = 1e-5), eachcol(coeffs))
 
-    p = @. (8 * c4 * c2 - 3 * c3^2) / (8 * c4^2)
-    q = @. (c3^3 - 4 * c4 * c3 * c2 + 8 * c4^2 * c1) / (8 * c4^3)
+    p = p_coeff.(c4, c3, c2)
+    q = q_coeff.(c4, c3, c2, c1)
 
     return SmoothedLinearInterpolationIntInvCache(degree, c4, c3, c2, c1, p, q)
 end

@@ -92,8 +92,10 @@ struct RootIterator{D, T}
     degree::D
     ab_part::T
     c2::T
+    c3::T
     Δ₀::T
     Δ₁::T
+    Q::T
     S::T
     p::T
     q::T
@@ -102,11 +104,12 @@ end
 function iterate_roots(degree, c4, c3, c2, c1, c0, p, q)
     Δ₀ = zero(Complex(p))
     Δ₁ = zero(Complex(p))
+    Q = zero(Complex(p))
     S = zero(Complex(p))
     if degree == 1
         ab_part = -c0 / c1
     elseif degree == 2
-        Δ₀ = c1^2 - 4 * c2 * c0
+        Δ₀ = Complex(c1^2 - 4 * c2 * c0)
         ab_part = -c1 / (2 * c2)
     else
         Δ₀ = Complex(c2^2 - 3 * c3 * c1 + 12 * c4 * c0)
@@ -126,8 +129,10 @@ function iterate_roots(degree, c4, c3, c2, c1, c0, p, q)
         degree,
         complex(ab_part),
         complex(c2),
+        complex(c3),
         Δ₀,
         Δ₁,
+        Q,
         S,
         Complex(p),
         Complex(q),
@@ -143,7 +148,12 @@ function root(::Val{4}, root_iterator::RootIterator, state)
     return out
 end
 
-function root(::Val{3}, root_interator::RootIterator, state) end
+function root(::Val{3}, root_iterator::RootIterator, state)
+    (; c3, Q, Δ₀, ab_part) = root_iterator
+    ξ = exp(2π * im / 3)
+    C = Q * ξ^(state - 1)
+    return ab_part - (C + Δ₀ / C) / (3 * c3)
+end
 
 function root(::Val{2}, root_iterator::RootIterator, state)
     (; c2, ab_part, Δ₀) = root_iterator
@@ -160,3 +170,6 @@ Base.iterate(root_iterator::RootIterator) =
 Base.iterate(root_iterator::RootIterator, state) =
     state > root_iterator.degree ? nothing :
     (root(Val{root_iterator.degree}(), root_iterator, state), state + 1)
+
+p_coeff(c4, c3, c2) = (8 * c4 * c2 - 3 * c3^2) / (8 * c4^2)
+q_coeff(c4, c3, c2, c1) = (c3^3 - 4 * c4 * c3 * c2 + 8 * c4^2 * c1) / (8 * c4^3)
