@@ -49,12 +49,12 @@ end
 
 struct SmoothedLinearInterpolationIntInvCache{uType}
     # The degree of the polynomial whose roots need to be found
-    degree::Vector{UInt8}
+    degree::Vector{Int}
     # Quartic polynomial coefficients
-    a::uType
-    b::uType
-    c::uType
-    d::uType
+    c4::uType
+    c3::uType
+    c2::uType
+    c1::uType
     # Coefficients of depressed quartic
     p::uType
     q::uType
@@ -63,11 +63,12 @@ end
 function SmoothedLinearInterpolationIntInvCache(A)
     coeffs =
         hcat([collect(get_quartic_coefficients(A, idx)) for idx in eachindex(A.cache.t)]...)
-    a, b, c, d = collect.(eachrow(coeffs))
-    degree = fill(UInt8(4), length(a))
+    c4, c3, c2, c1 = collect.(eachrow(coeffs))
+    # The degree is 5 minus the index of the first (≈) nonzero coefficient
+    degree = 5 .- findfirst.(coef -> !isapprox(coef, 0; atol = 1e-5), eachcol(coeffs))
 
-    p = @. (8 * a * c - 3 * b^2) / (8 * a^2)
-    q = @. (b^3 - 4 * a * b * c + 8 * a^2 * d) / (8 * a^3)
+    p = @. (8 * c4 * c2 - 3 * c3^2) / (8 * c4^2)
+    q = @. (c3^3 - 4 * c4 * c3 * c2 + 8 * c4^2 * c1) / (8 * c4^3)
 
-    return SmoothedLinearInterpolationIntInvCache(degree, a, b, c, d, p, q)
+    return SmoothedLinearInterpolationIntInvCache(degree, c4, c3, c2, c1, p, q)
 end

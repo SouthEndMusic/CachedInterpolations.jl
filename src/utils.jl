@@ -71,12 +71,12 @@ function get_quartic_coefficients(A::SmoothedLinearInterpolation, idx::Number)
     f₁ = u_tilde[i - 1] / λ
     f₂ = λ^2 / 24
 
-    a = f₂ * (3 * ΔΔtᵢ * ΔΔuᵢ)
-    b = f₂ * (4 * Δtᵢ * ΔΔuᵢ + 8 * ΔΔtᵢ * Δuᵢ)
-    c = f₂ * (12 * ΔΔtᵢ * f₁ + 12 * Δtᵢ * Δuᵢ)
-    d = f₂ * (24 * Δtᵢ * f₁)
+    c4 = f₂ * (3 * ΔΔtᵢ * ΔΔuᵢ)
+    c3 = f₂ * (4 * Δtᵢ * ΔΔuᵢ + 8 * ΔΔtᵢ * Δuᵢ)
+    c2 = f₂ * (12 * ΔΔtᵢ * f₁ + 12 * Δtᵢ * Δuᵢ)
+    c1 = f₂ * (24 * Δtᵢ * f₁)
 
-    return a, b, c, d
+    return c4, c3, c2, c1
 end
 
 valid(s) = isapprox(imag(s), 0; atol = 1e-5) && (0 <= real(s) <= 1)
@@ -88,23 +88,53 @@ function T(A::SmoothedLinearInterpolationIntInv, s, idx)
     return λ / 2 * ΔΔtᵢ * s^2 + λ * Δtᵢ * s + t_tilde[2 * idx - 1]
 end
 
-struct RootIterator{T}
+struct RootIterator{D, T}
+    degree::D
     ab_part::T
+    c2::T
+    Δ₀::T
+    Δ₁::T
     S::T
     p::T
     q::T
 end
 
-function RootIterator(a, b, c, d, e, p, q)
-    ab_part = Complex(-b / (4 * a))
-    Δ₀ = Complex(c^2 - 3 * b * d + 12 * a * e)
-    Δ₁ = Complex(2 * c^3 - 9 * b * c * d + 27 * b^2 * e + 27 * a * d^2 - 72 * a * c * e)
-    Q = ((Δ₁ + sqrt(Δ₁^2 - 4 * Δ₀^3)) / 2)^(1 / 3)
-    S = sqrt(-2 * p / 3 + (Q + Δ₀ / Q) / (3 * a)) / 2
-    return RootIterator(ab_part, S, Complex(p), Complex(q))
+function iterate_roots(degree, c4, c3, c2, c1, c0, p, q)
+    Δ₀ = zero(Complex(p))
+    Δ₁ = zero(Complex(p))
+    S = zero(Complex(p))
+    if degree == 1
+        ab_part = -c0 / c1
+    elseif degree == 2
+        Δ₀ = c1^2 - 4 * c2 * c0
+        ab_part = -c1 / (2 * c2)
+    else
+        Δ₀ = Complex(c2^2 - 3 * c3 * c1 + 12 * c4 * c0)
+        Δ₁ = Complex(
+            2 * c2^3 - 9 * c3 * c2 * c1 + 27 * c3^2 * c0 + 27 * c4 * c1^2 -
+            72 * c4 * c2 * c0,
+        )
+        Q = ((Δ₁ + sqrt(Δ₁^2 - 4 * Δ₀^3)) / 2)^(1 / 3)
+        if degree == 3
+            ab_part = -c2 / (3 * c3)
+        else
+            ab_part = -c3 / (4 * c4)
+            S = sqrt(-2 * p / 3 + (Q + Δ₀ / Q) / (3 * c4)) / 2
+        end
+    end
+    return RootIterator(
+        degree,
+        complex(ab_part),
+        complex(c2),
+        Δ₀,
+        Δ₁,
+        S,
+        Complex(p),
+        Complex(q),
+    )
 end
 
-function quartic_root(root_iterator::RootIterator, state)
+function root(::Val{4}, root_iterator::RootIterator, state)
     (; ab_part, S, p, q) = root_iterator
     sign_1 = state < 3 ? -1 : 1
     sign_2 = (-1)^state
@@ -113,7 +143,20 @@ function quartic_root(root_iterator::RootIterator, state)
     return out
 end
 
-Base.length(::RootIterator) = 4
-Base.iterate(root_iterator::RootIterator) = (quartic_root(root_iterator, 1), 2)
+function root(::Val{3}, root_interator::RootIterator, state) end
+
+function root(::Val{2}, root_iterator::RootIterator, state)
+    (; c2, ab_part, Δ₀) = root_iterator
+    return ab_part + (-1)^state * sqrt(Δ₀) / (2 * c2)
+end
+
+function root(::Val{1}, root_iterator::RootIterator, state)
+    return root_iterator.ab_part
+end
+
+Base.length(root_iterator::RootIterator) = root_iterator.degree
+Base.iterate(root_iterator::RootIterator) =
+    (root(Val{root_iterator.degree}(), root_iterator, 1), 2)
 Base.iterate(root_iterator::RootIterator, state) =
-    state > 4 ? nothing : (quartic_root(root_iterator, state), state + 1)
+    state > root_iterator.degree ? nothing :
+    (root(Val{root_iterator.degree}(), root_iterator, state), state + 1)

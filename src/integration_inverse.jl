@@ -33,7 +33,7 @@ function DataInterpolations._interpolate(
 )
     n_points = length(A.t)
     (; u, t, cache, cache_integration) = A
-    (; a, b, c, d, p, q) = cache_integration
+    (; degree, c4, c3, c2, c1, p, q) = cache_integration
 
     # idx of smallest idx such that A.t[idx] >= t
     # Note that A.t denotes integrated values
@@ -64,17 +64,18 @@ function DataInterpolations._interpolate(
         @assert Vdiff >= 0
 
         i = Int(idx // 2)
-        aᵢ = a[i]
-        bᵢ = b[i]
-        cᵢ = c[i]
-        dᵢ = d[i]
-        e = -Vdiff
+        c4ᵢ = Complex(c4[i])
+        c3ᵢ = Complex(c3[i])
+        c2ᵢ = Complex(c2[i])
+        c1ᵢ = Complex(c1[i])
+        c0 = -Vdiff
         pᵢ = p[i]
         qᵢ = q[i]
+        degᵢ = degree[i]
 
         # Check the 4 possible roots for being valid;
         # real and in [0,1]
-        root_iterator = RootIterator(aᵢ, bᵢ, cᵢ, dᵢ, e, pᵢ, qᵢ)
+        root_iterator = iterate_roots(degᵢ, c4ᵢ, c3ᵢ, c2ᵢ, c1ᵢ, c0, pᵢ, qᵢ)
         for s in root_iterator
             if valid(s)
                 return T(A, real(s), i)
