@@ -22,7 +22,8 @@ function S(A::SmoothedLinearInterpolation, t, idx)
     else
         s = (-Δtᵢ + sqrt(Δtᵢ^2 + 2 * ΔΔtᵢ * tdiff / λ)) / ΔΔtᵢ
     end
-    @assert 0 <= s <= 1 "s should be in [0,1], got $s."
+    ε = 1e-5
+    @assert -ε <= s <= 1 + ε "s should be in [0,1], got $s."
     return s
 end
 

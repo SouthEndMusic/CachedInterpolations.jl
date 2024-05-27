@@ -56,9 +56,13 @@ function DataInterpolations._interpolate(
         # Extrapolation
         Vdiff = (V - t[end])
         @assert Vdiff >= 0
-        u[end] +
-        (-cache.u[end] + sqrt(cache.u[end]^2 + 2 * cache.linear_slope[end] * Vdiff)) /
-        cache.linear_slope[end]
+        if isapprox(cache.linear_slope[end], 0; atol = 1e-5)
+            u[end] + Vdiff / t[end]
+        else
+            u[end] +
+            (-cache.u[end] + sqrt(cache.u[end]^2 + 2 * cache.linear_slope[end] * Vdiff)) /
+            cache.linear_slope[end]
+        end
     elseif idx % 2 == 0
         Vdiff = (V - A.t[idx - 1])
         @assert Vdiff >= 0
@@ -87,15 +91,18 @@ function DataInterpolations._interpolate(
         # Linear section of SmoothedLinearInterpolation
         Vdiff = (V - A.t[idx - 1])
         @assert Vdiff >= 0
-
-        # TODO: Consider degenerate case
-        # where Δu[i+1] = 0
         i = Int((idx - 1) // 2)
-        Δuᵢ₊₁ = cache.Δu[i + 1]
-        Δtᵢ₊₁ = cache.Δt[i + 1]
-        u_frac = cache.u[i] / Δuᵢ₊₁
-        λ = cache.λ
-        root = sqrt(u_frac^2 + λ * (u_frac + λ / 4) + 2 * Vdiff / (Δtᵢ₊₁ * Δuᵢ₊₁))
-        cache.t[i] + (-u_frac + sign(u_frac) * root) * Δtᵢ₊₁
+
+        if isapprox(cache.Δu[i + 1], 0; atol = 1e-5)
+            # Special case when SmoothedLinearInterpolation is constant
+            A.t[idx] + Vdiff / cache.u[i]
+        else
+            Δuᵢ₊₁ = cache.Δu[i + 1]
+            Δtᵢ₊₁ = cache.Δt[i + 1]
+            u_frac = cache.u[i] / Δuᵢ₊₁
+            λ = cache.λ
+            root = sqrt(u_frac^2 + λ * (u_frac + λ / 4) + 2 * Vdiff / (Δtᵢ₊₁ * Δuᵢ₊₁))
+            cache.t[i] + (-u_frac + sign(u_frac) * root) * Δtᵢ₊₁
+        end
     end
 end
