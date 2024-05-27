@@ -1,3 +1,4 @@
+using DataInterpolations
 using SmoothInterpolation
 using Random
 
@@ -48,4 +49,15 @@ end
         2.37415,
         2.42469,
     ] atol = 1e-4
+end
+
+@testset "SmoothedLinearInterpolationIntInv" begin
+    Random.seed!(9)
+    u = rand(5)
+    t = cumsum(rand(5))
+    itp = SmoothedLinearInterpolation(u, t; extrapolate = true)
+    itp_int_inv = SmoothedLinearInterpolationIntInv(itp)
+    t_eval = range(t[1], 4.0; length = 200)
+    u_eval = DataInterpolations.integral.(Ref(itp), t_eval)
+    @test t_eval ≈ itp_int_inv.(u_eval)
 end

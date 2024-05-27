@@ -82,7 +82,7 @@ function DataInterpolations._interpolate(
             end
         end
 
-        error("No valid root found, got $(collect(root_iterator)).")
+        error("No valid root found, got $(collect(root_iterator)) for V = $V.")
     else
         # Linear section of SmoothedLinearInterpolation
         Vdiff = (V - A.t[idx - 1])

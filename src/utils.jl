@@ -79,7 +79,7 @@ function get_quartic_coefficients(A::SmoothedLinearInterpolation, idx::Number)
     return c4, c3, c2, c1
 end
 
-valid(s) = isapprox(imag(s), 0; atol = 1e-5) && (0 <= real(s) <= 1)
+valid(s) = isapprox(imag(s), 0; atol = 1e-4) && (0 <= real(s) <= 1)
 
 function T(A::SmoothedLinearInterpolationIntInv, s, idx)
     (; Δt, ΔΔt, t_tilde, λ) = A.cache
