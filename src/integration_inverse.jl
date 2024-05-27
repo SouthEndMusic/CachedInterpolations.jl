@@ -95,7 +95,7 @@ function DataInterpolations._interpolate(
 
         if isapprox(cache.Δu[i + 1], 0; atol = 1e-5)
             # Special case when SmoothedLinearInterpolation is constant
-            A.t[idx] + Vdiff / cache.u[i]
+            A.u[idx - 1] + Vdiff / cache.u[i]
         else
             Δuᵢ₊₁ = cache.Δu[i + 1]
             Δtᵢ₊₁ = cache.Δt[i + 1]
