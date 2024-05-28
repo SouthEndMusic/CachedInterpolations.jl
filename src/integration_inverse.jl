@@ -19,6 +19,7 @@ end
 function SmoothedLinearInterpolationIntInv(
     A::SmoothedLinearInterpolation,
 )::SmoothedLinearInterpolationIntInv
+    @assert all(A.u .>= 0) "Inverting the integral is only supported for non-negative SmoothedLinearInterpolation."
     (; cache, extrapolate) = A
     t = DataInterpolations.integral.(Ref(A), cache.t_tilde)
     u = cache.t_tilde
