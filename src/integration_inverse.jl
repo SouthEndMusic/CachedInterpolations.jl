@@ -1,7 +1,7 @@
 """
     SmoothedLinearInterpolation(A::SmoothedLinearInterpolation)
 
-Inverting the integral of a SmoothedLinearInterpolation object if possible. The A.u most be non-negative.
+Inverting the integral of a SmoothedLinearInterpolation object if possible. The `A.u` must be non-negative.
 
 ## Arguments
 
