@@ -1,3 +1,12 @@
+"""
+    SmoothedLinearInterpolation(A::SmoothedLinearInterpolation)
+
+Inverting the integral of a SmoothedLinearInterpolation object if possible. The `A.u` must be non-negative.
+
+## Arguments
+
+  - A The SmoothedLinearInterpolation object whose integral is inverted.
+"""
 struct SmoothedLinearInterpolationIntInv{uType, tType, λType <: Real, T} <:
        AbstractInterpolation{T}
     u::uType
@@ -19,40 +28,12 @@ end
 function SmoothedLinearInterpolationIntInv(
     A::SmoothedLinearInterpolation,
 )::SmoothedLinearInterpolationIntInv
+    @assert all(A.u .>= 0) "Inverting the integral is only supported for non-negative SmoothedLinearInterpolation."
     (; cache, extrapolate) = A
-    t = integrate_sections(cache)
+    t = DataInterpolations.integral.(Ref(A), cache.t_tilde)
     u = cache.t_tilde
     cache_int = SmoothedLinearInterpolationIntInvCache(A)
     return SmoothedLinearInterpolationIntInv(u, t, cache, cache_int, cache.λ, extrapolate)
-end
-
-function integrate_sections(cache::SmoothedLinearInterpolationCache)
-    (; u, Δu, Δt, u_tilde, t_tilde, λ) = cache
-    n_points = length(t_tilde)
-    U = zeros(n_points)
-    for j in eachindex(t_tilde)
-        if j == 1
-            continue
-        elseif j == 2
-            U[j] = 0.5 * (u_tilde[2] + u_tilde[1]) * (t_tilde[2] - t_tilde[1])
-        elseif j == n_points
-            U[j] =
-                0.5 * (u_tilde[end] + u_tilde[end - 1]) * (t_tilde[end] - t_tilde[end - 1])
-        elseif j % 2 == 0
-            i = Int(j // 2)
-            Δuᵢ = Δu[i]
-            Δuᵢ₊₁ = Δu[i + 1]
-            Δtᵢ = Δt[i]
-            Δtᵢ₊₁ = Δt[i + 1]
-            U[j] =
-                λ^2 / 24 * (Δtᵢ * (-3 * Δuᵢ + Δuᵢ₊₁) + Δtᵢ₊₁ * (-Δuᵢ + 3 * Δuᵢ₊₁)) +
-                λ / 2 * (Δtᵢ + Δtᵢ₊₁) * u[i]
-        else
-            U[j] = 0.5 * (u_tilde[j] + u_tilde[j - 1]) * (t_tilde[j] - t_tilde[j - 1])
-        end
-    end
-    U = cumsum(U)
-    return U
 end
 
 function DataInterpolations._interpolate(
@@ -61,78 +42,77 @@ function DataInterpolations._interpolate(
     iguess,
 )
     n_points = length(A.t)
-    (; u, t, Δu, Δt, λ) = A.cache
-    (; a, b, c, d, p, q) = A.cache_integration
+    (; u, t, cache, cache_integration) = A
+    (; degree, c4, c3, c2, c1, p, q) = cache_integration
 
     # idx of smallest idx such that A.t[idx] >= t
     # Note that A.t denotes integrated values
     idx = searchsortedfirstcorrelated(A.t, V, iguess)
 
     if idx == 1
-        0
-    elseif idx == 2
-        0
+        @assert V >= 0 "Cannot invert intagral for negative input."
+        idx = 2
+    end
+
+    if idx == 2
+        # First half spline section
+        # which is linear
+        Vdiff = (V - t[1])
+        @assert Vdiff >= 0
+        u[1] +
+        (-cache.u[1] + sqrt(cache.u[1]^2 + 2 * cache.linear_slope[1] * Vdiff)) /
+        cache.linear_slope[1]
     elseif idx == n_points + 1
-        0
+        # Extrapolation
+        Vdiff = (V - t[end])
+        @assert Vdiff >= 0
+        if isapprox(cache.linear_slope[end], 0; atol = 1e-5)
+            u[end] + Vdiff / t[end]
+        else
+            u[end] +
+            (-cache.u[end] + sqrt(cache.u[end]^2 + 2 * cache.linear_slope[end] * Vdiff)) /
+            cache.linear_slope[end]
+        end
     elseif idx % 2 == 0
         Vdiff = (V - A.t[idx - 1])
         @assert Vdiff >= 0
 
         i = Int(idx // 2)
-        aᵢ = a[i]
-        bᵢ = b[i]
-        cᵢ = c[i]
-        dᵢ = d[i]
+        c4ᵢ = Complex(c4[i])
+        c3ᵢ = Complex(c3[i])
+        c2ᵢ = Complex(c2[i])
+        c1ᵢ = Complex(c1[i])
+        c0 = -Vdiff
         pᵢ = p[i]
         qᵢ = q[i]
-
-        Δ₀ = Complex(cᵢ^2 - 3 * bᵢ * dᵢ - 12 * aᵢ * Vdiff)
-        Δ₁ = Complex(
-            2 * cᵢ^3 +
-            9 * bᵢ * cᵢ * dᵢ +
-            27 * bᵢ^2 * Vdiff +
-            27 * aᵢ * dᵢ^2 +
-            72 * aᵢ * cᵢ * Vdiff,
-        )
-        Q = ((Δ₁ + sqrt(Δ₁^2 - 4 * Δ₀^3)) / 2)^(1 / 3)
-        S = sqrt(-2 * pᵢ / 3 + (Q + Δ₀ / Q) / (3 * aᵢ)) / 2
-
-        root = sqrt(-4 * S^2 - 2 * pᵢ - qᵢ / S)
+        degᵢ = degree[i]
 
         # Check the 4 possible roots for being valid;
         # real and in [0,1]
-        s1 = -bᵢ / (4 * aᵢ) + S + root / 2
-        if valid(s1)
-            return U_s(A, real(s1), i)
+        root_iterator = iterate_roots(degᵢ, c4ᵢ, c3ᵢ, c2ᵢ, c1ᵢ, c0, pᵢ, qᵢ)
+        for s in root_iterator
+            if valid(s)
+                return T(A, real(s), i)
+            end
         end
 
-        s2 = -bᵢ / (4 * aᵢ) + S - root / 2
-        if valid(s2)
-            return U_s(A, real(s2), i)
-        end
-
-        s3 = -bᵢ / (4 * aᵢ) - S + root / 2
-        if valid(s3)
-            return U_s(A, real(s3), i)
-        end
-
-        s4 = -bᵢ / (4 * aᵢ) - S - root / 2
-        if valid(s4)
-            return U_s(A, real(s4), i)
-        end
-
-        error("No valid root found, got $([s1,s2,s3,s4]).")
+        error("No valid root found, got $(collect(root_iterator)) for V = $V.")
     else
+        # Linear section of SmoothedLinearInterpolation
         Vdiff = (V - A.t[idx - 1])
         @assert Vdiff >= 0
-
-        # TODO: Consider degenerate case
-        # where Δu[I+1] = 0
         i = Int((idx - 1) // 2)
-        Δuᵢ₊₁ = Δu[i + 1]
-        Δtᵢ₊₁ = Δt[i + 1]
-        u_frac = u[i] / Δuᵢ₊₁
-        root = sqrt(u_frac^2 + λ * (u_frac + λ / 4) + 2 * Vdiff / (Δtᵢ₊₁ * Δuᵢ₊₁))
-        t[i] + (-u_frac + sign(u_frac) * root) * Δtᵢ₊₁
+
+        if isapprox(cache.Δu[i + 1], 0; atol = 1e-5)
+            # Special case when SmoothedLinearInterpolation is constant
+            A.u[idx - 1] + Vdiff / cache.u[i]
+        else
+            Δuᵢ₊₁ = cache.Δu[i + 1]
+            Δtᵢ₊₁ = cache.Δt[i + 1]
+            u_frac = cache.u[i] / Δuᵢ₊₁
+            λ = cache.λ
+            root = sqrt(u_frac^2 + λ * (u_frac + λ / 4) + 2 * Vdiff / (Δtᵢ₊₁ * Δuᵢ₊₁))
+            cache.t[i] + (-u_frac + sign(u_frac) * root) * Δtᵢ₊₁
+        end
     end
 end

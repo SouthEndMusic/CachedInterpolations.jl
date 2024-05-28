@@ -1,3 +1,6 @@
+"""
+The cache object for SmoothedLinearInterpolation computations.
+"""
 struct SmoothedLinearInterpolationCache{uType, tType, λType <: Number}
     u::uType
     t::tType
@@ -9,15 +12,6 @@ struct SmoothedLinearInterpolationCache{uType, tType, λType <: Number}
     t_tilde::tType
     linear_slope::uType
     λ::λType
-end
-
-function get_spline_ends(u, Δu, λ)
-    u_tilde = zeros(2 * length(u))
-    u_tilde[1] = u[1]
-    u_tilde[2:2:(end - 1)] = u[1:(end - 1)] .+ (λ / 2) .* Δu[2:(end - 1)]
-    u_tilde[3:2:end] = u[2:end] .- (λ / 2) .* Δu[2:(end - 1)]
-    u_tilde[end] = u[end]
-    return u_tilde
 end
 
 function SmoothedLinearInterpolationCache(u, t, λ)::SmoothedLinearInterpolationCache
@@ -47,31 +41,31 @@ function SmoothedLinearInterpolationCache(u, t, λ)::SmoothedLinearInterpolation
     )
 end
 
+"""
+The cache object for SmoothedLinearInterpolationIntInv computations.
+"""
 struct SmoothedLinearInterpolationIntInvCache{uType}
     # The degree of the polynomial whose roots need to be found
-    degree::Vector{UInt8}
+    degree::Vector{Int}
     # Quartic polynomial coefficients
-    a::uType
-    b::uType
-    c::uType
-    d::uType
+    c4::uType
+    c3::uType
+    c2::uType
+    c1::uType
     # Coefficients of depressed quartic
     p::uType
     q::uType
 end
 
 function SmoothedLinearInterpolationIntInvCache(A)
-    coeffs = hcat(
-        [
-            collect(get_quartic_coefficients(A, idx)) for
-            idx in eachindex(A.t) if idx ∉ [1, length(A.t)]
-        ]...,
-    )
-    a, b, c, d = collect.(eachrow(coeffs))
-    degree = fill(UInt8(4), length(a))
+    coeffs =
+        hcat([collect(get_quartic_coefficients(A, idx)) for idx in eachindex(A.cache.t)]...)
+    c4, c3, c2, c1 = collect.(eachrow(coeffs))
+    # The degree is 5 minus the index of the first (≈) nonzero coefficient
+    degree = 5 .- findfirst.(coef -> !isapprox(coef, 0; atol = 1e-5), eachcol(coeffs))
 
-    p = @. (8 * a * c - 3 * b^2) / (8 * a^2)
-    q = @. (b^3 - 4 * a * b * c + 8 * a^2 * d) / (8 * a^3)
+    p = p_coeff.(c4, c3, c2)
+    q = q_coeff.(c4, c3, c2, c1)
 
-    return SmoothedLinearInterpolationIntInvCache(degree, a, b, c, d, p, q)
+    return SmoothedLinearInterpolationIntInvCache(degree, c4, c3, c2, c1, p, q)
 end
