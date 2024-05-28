@@ -1,3 +1,6 @@
+"""
+The cache object for SmoothedLinearInterpolation computations.
+"""
 struct SmoothedLinearInterpolationCache{uType, tType, λType <: Number}
     u::uType
     t::tType
@@ -9,15 +12,6 @@ struct SmoothedLinearInterpolationCache{uType, tType, λType <: Number}
     t_tilde::tType
     linear_slope::uType
     λ::λType
-end
-
-function get_spline_ends(u, Δu, λ)
-    u_tilde = zeros(2 * length(u))
-    u_tilde[1] = u[1]
-    u_tilde[2:2:(end - 1)] = u[1:(end - 1)] .+ (λ / 2) .* Δu[2:(end - 1)]
-    u_tilde[3:2:end] = u[2:end] .- (λ / 2) .* Δu[2:(end - 1)]
-    u_tilde[end] = u[end]
-    return u_tilde
 end
 
 function SmoothedLinearInterpolationCache(u, t, λ)::SmoothedLinearInterpolationCache
@@ -47,6 +41,9 @@ function SmoothedLinearInterpolationCache(u, t, λ)::SmoothedLinearInterpolation
     )
 end
 
+"""
+The cache object for SmoothedLinearInterpolationIntInv computations.
+"""
 struct SmoothedLinearInterpolationIntInvCache{uType}
     # The degree of the polynomial whose roots need to be found
     degree::Vector{Int}

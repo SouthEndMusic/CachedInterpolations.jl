@@ -61,6 +61,12 @@ function U_s(A::AbstractInterpolation, s, idx)
     return λ / 2 * ΔΔuᵢ * s^2 + λ * Δuᵢ * s + u_tilde[2 * idx - 1]
 end
 
+"""
+Compute the coefficients for the quartic polynomial in s for the integration
+of a spline section
+
+Vdiff = c4 * s^4 + c3 * s^3 + c2 * s^2 + c1 * s + c0
+"""
 function get_quartic_coefficients(A::SmoothedLinearInterpolation, idx::Number)
     (; Δu, Δt, ΔΔu, ΔΔt, u_tilde, λ) = A.cache
 
@@ -80,8 +86,16 @@ function get_quartic_coefficients(A::SmoothedLinearInterpolation, idx::Number)
     return c4, c3, c2, c1
 end
 
+"""
+Determine whether a value s is valid, i.e.
+- Its imaginary part is close to 0;
+- Its real part is in the interval [0.1].
+"""
 valid(s) = isapprox(imag(s), 0; atol = 1e-4) && (0 <= real(s) <= 1)
 
+"""
+Compute t of a spline section from s.
+"""
 function T(A::SmoothedLinearInterpolationIntInv, s, idx)
     (; Δt, ΔΔt, t_tilde, λ) = A.cache
     Δtᵢ = Δt[idx]
@@ -102,6 +116,14 @@ struct RootIterator{D, T}
     q::T
 end
 
+"""
+    iterate_roots(degree, c4, c3, c2, c1, c0, p, q)
+
+Generate an iterator object which iterates over the roots
+of the polynomial with the given coefficients of the given degree.
+Coefficients for terms higher than the degree are not used, 
+and p, q are only used when degree = 4.
+"""
 function iterate_roots(degree, c4, c3, c2, c1, c0, p, q)
     Δ₀ = zero(Complex(p))
     Δ₁ = zero(Complex(p))
@@ -140,6 +162,9 @@ function iterate_roots(degree, c4, c3, c2, c1, c0, p, q)
     )
 end
 
+"""
+Compute a root of a quartic polynomial
+"""
 function root(::Val{4}, root_iterator::RootIterator, state)
     (; ab_part, S, p, q) = root_iterator
     sign_1 = state < 3 ? -1 : 1
@@ -149,6 +174,9 @@ function root(::Val{4}, root_iterator::RootIterator, state)
     return out
 end
 
+"""
+Compute a root of a cubic polynomial
+"""
 function root(::Val{3}, root_iterator::RootIterator, state)
     (; c3, Q, Δ₀, ab_part) = root_iterator
     ξ = exp(2π * im / 3)
@@ -156,11 +184,17 @@ function root(::Val{3}, root_iterator::RootIterator, state)
     return ab_part - (C + Δ₀ / C) / (3 * c3)
 end
 
+"""
+Compute a root of a quadratic polynomial
+"""
 function root(::Val{2}, root_iterator::RootIterator, state)
     (; c2, ab_part, Δ₀) = root_iterator
     return ab_part + (-1)^state * sqrt(Δ₀) / (2 * c2)
 end
 
+"""
+Compute a root of a linear polynomial
+"""
 function root(::Val{1}, root_iterator::RootIterator, state)
     return root_iterator.ab_part
 end
@@ -174,3 +208,16 @@ Base.iterate(root_iterator::RootIterator, state) =
 
 p_coeff(c4, c3, c2) = (8 * c4 * c2 - 3 * c3^2) / (8 * c4^2)
 q_coeff(c4, c3, c2, c1) = (c3^3 - 4 * c4 * c3 * c2 + 8 * c4^2 * c1) / (8 * c4^3)
+
+"""
+Compute u_tilde, the value of u at the boundary points between linear and spline sections
+of a SmootedLinearInterpolation curve.
+"""
+function get_spline_ends(u, Δu, λ)
+    u_tilde = zeros(2 * length(u))
+    u_tilde[1] = u[1]
+    u_tilde[2:2:(end - 1)] = u[1:(end - 1)] .+ (λ / 2) .* Δu[2:(end - 1)]
+    u_tilde[3:2:end] = u[2:end] .- (λ / 2) .* Δu[2:(end - 1)]
+    u_tilde[end] = u[end]
+    return u_tilde
+end

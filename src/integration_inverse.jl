@@ -1,3 +1,12 @@
+"""
+    SmoothedLinearInterpolation(A::SmoothedLinearInterpolation)
+
+Inverting the integral of a SmoothedLinearInterpolation object if possible. The A.u most be non-negative.
+
+## Arguments
+
+  - A The SmoothedLinearInterpolation object whose integral is inverted.
+"""
 struct SmoothedLinearInterpolationIntInv{uType, tType, λType <: Real, T} <:
        AbstractInterpolation{T}
     u::uType
