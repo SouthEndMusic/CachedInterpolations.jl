@@ -90,8 +90,9 @@ function DataInterpolations._interpolate(
         # Check the 4 possible roots for being valid;
         # real and in [0,1]
         root_iterator = iterate_roots(degᵢ, c4ᵢ, c3ᵢ, c2ᵢ, c1ᵢ, c0, pᵢ, qᵢ)
-        for s in root_iterator
+        for (root_index, s) in enumerate(root_iterator)
             if valid(s)
+                degᵢ == 4 && root_index in [1, 3] && @show root_index
                 return T_s(A, real(s), i)
             end
         end
