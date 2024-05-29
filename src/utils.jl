@@ -179,8 +179,8 @@ Compute a root of a quartic polynomial
 """
 function quartic_root(root_iterator::RootIterator{T1}, state)::T1 where {T1}
     (; ab_part, S, p, q) = root_iterator
-    sign_1 = state < 3 ? -1 : 1
-    sign_2 = (-1)^state
+    sign_1 = state % 3 == 1 ? -1 : 1
+    sign_2 = state < 3 ? 1 : -1
     root = sqrt(-4S^2 - 2p - sign_1 * q / S)
     out = ab_part + sign_1 * S + sign_2 * 0.5 * root
     return out
