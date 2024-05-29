@@ -43,7 +43,7 @@ function DataInterpolations._interpolate(
 )
     n_points = length(A.t)
     (; u, t, cache, cache_integration) = A
-    (; degree, c4, c3, c2, c1, p, q) = cache_integration
+    (; degree, c4, c3, c2, c1, p, q, degenerate_Δu) = cache_integration
 
     # idx of smallest idx such that A.t[idx] >= t
     # Note that A.t denotes integrated values
@@ -103,7 +103,7 @@ function DataInterpolations._interpolate(
         @assert Vdiff >= 0
         i = (idx - 1) ÷ 2
 
-        if isapprox(cache.Δu[i + 1], 0; atol = 1e-5)
+        if degenerate_Δu[i + 1]
             # Special case when SmoothedLinearInterpolation is constant
             A.u[idx - 1] + Vdiff / cache.u[i]
         else

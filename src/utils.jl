@@ -10,13 +10,13 @@ Compute the spline parameter `s` from from the time `t`.
     - `idx`: The index indicating which spline section
 """
 function S(A::SmoothedLinearInterpolation, t, idx)
-    (; Δt, ΔΔt, t_tilde, λ) = A.cache
+    (; Δt, ΔΔt, degenerate_ΔΔt, t_tilde, λ) = A.cache
     Δtᵢ = Δt[idx]
     ΔΔtᵢ = ΔΔt[idx]
     tdiff = t - t_tilde[2 * idx - 1]
     @assert tdiff >= 0
 
-    if isapprox(ΔΔtᵢ, 0; atol = 1e-5)
+    if degenerate_ΔΔt[idx]
         # Degenerate case Δtᵢ₊₁ ≈ Δtᵢ
         s = 1 / λ * tdiff / Δtᵢ
     else
