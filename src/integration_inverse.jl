@@ -50,7 +50,7 @@ function DataInterpolations._interpolate(
     idx = searchsortedfirstcorrelated(A.t, V, iguess)
 
     if idx == 1
-        @assert V >= 0 "Cannot invert intagral for negative input."
+        @assert V >= 0 "Cannot invert integral for negative input."
         idx = 2
     end
 
@@ -77,7 +77,7 @@ function DataInterpolations._interpolate(
         Vdiff = (V - A.t[idx - 1])
         @assert Vdiff >= 0
 
-        i = Int(idx // 2)
+        i = idx ÷ 2
         c4ᵢ = Complex(c4[i])
         c3ᵢ = Complex(c3[i])
         c2ᵢ = Complex(c2[i])
@@ -92,7 +92,7 @@ function DataInterpolations._interpolate(
         root_iterator = iterate_roots(degᵢ, c4ᵢ, c3ᵢ, c2ᵢ, c1ᵢ, c0, pᵢ, qᵢ)
         for s in root_iterator
             if valid(s)
-                return T(A, real(s), i)
+                return T_s(A, real(s), i)
             end
         end
 
@@ -101,7 +101,7 @@ function DataInterpolations._interpolate(
         # Linear section of SmoothedLinearInterpolation
         Vdiff = (V - A.t[idx - 1])
         @assert Vdiff >= 0
-        i = Int((idx - 1) // 2)
+        i = (idx - 1) ÷ 2
 
         if isapprox(cache.Δu[i + 1], 0; atol = 1e-5)
             # Special case when SmoothedLinearInterpolation is constant

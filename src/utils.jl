@@ -96,24 +96,27 @@ valid(s) = isapprox(imag(s), 0; atol = 1e-4) && (0 <= real(s) <= 1)
 """
 Compute t of a spline section from s.
 """
-function T(A::SmoothedLinearInterpolationIntInv, s, idx)
+function T_s(A::SmoothedLinearInterpolationIntInv, s, idx)
     (; Δt, ΔΔt, t_tilde, λ) = A.cache
     Δtᵢ = Δt[idx]
     ΔΔtᵢ = ΔΔt[idx]
     return λ / 2 * ΔΔtᵢ * s^2 + λ * Δtᵢ * s + t_tilde[2 * idx - 1]
 end
 
-struct RootIterator{D, T}
+struct RootIterator{T1, T2, T3, T4, D}
+    # T1: Complex constants
+    # T2: Complex constants depending on c0,
+    # so could carry differentiation information
     degree::D
-    ab_part::T
-    c2::T
-    c3::T
-    Δ₀::T
-    Δ₁::T
-    Q::T
-    S::T
-    p::T
-    q::T
+    ab_part::T4
+    c2::T2
+    c3::T2
+    Δ₀::T1
+    Δ₁::T1
+    Q::T1
+    S::T1
+    p::T3
+    q::T3
 end
 
 """
@@ -124,11 +127,20 @@ of the polynomial with the given coefficients of the given degree.
 Coefficients for terms higher than the degree are not used, 
 and p, q are only used when degree = 4.
 """
-function iterate_roots(degree, c4, c3, c2, c1, c0, p, q)
-    Δ₀ = zero(Complex(p))
-    Δ₁ = zero(Complex(p))
-    Q = zero(Complex(p))
-    S = zero(Complex(p))
+function iterate_roots(
+    degree,
+    c4::T2,
+    c3::T2,
+    c2::T2,
+    c1::T2,
+    c0::T1,
+    p::T3,
+    q::T3,
+)::RootIterator where {T1, T2, T3}
+    Δ₀ = zero(Complex(c0))
+    Δ₁ = zero(Complex(c0))
+    Q = zero(Complex(c0))
+    S = zero(Complex(c0))
     if degree == 1
         ab_part = -c0 / c1
     elseif degree == 2
@@ -165,7 +177,7 @@ end
 """
 Compute a root of a quartic polynomial
 """
-function root(::Val{4}, root_iterator::RootIterator, state)
+function quartic_root(root_iterator::RootIterator{T1}, state)::T1 where {T1}
     (; ab_part, S, p, q) = root_iterator
     sign_1 = state < 3 ? -1 : 1
     sign_2 = (-1)^state
@@ -177,7 +189,7 @@ end
 """
 Compute a root of a cubic polynomial
 """
-function root(::Val{3}, root_iterator::RootIterator, state)
+function cube_root(root_iterator::RootIterator{T1}, state)::T1 where {T1}
     (; c3, Q, Δ₀, ab_part) = root_iterator
     ξ = exp(2π * im / 3)
     C = Q * ξ^(state - 1)
@@ -187,7 +199,7 @@ end
 """
 Compute a root of a quadratic polynomial
 """
-function root(::Val{2}, root_iterator::RootIterator, state)
+function square_root(root_iterator::RootIterator{T1}, state)::T1 where {T1}
     (; c2, ab_part, Δ₀) = root_iterator
     return ab_part + (-1)^state * sqrt(Δ₀) / (2 * c2)
 end
@@ -195,19 +207,35 @@ end
 """
 Compute a root of a linear polynomial
 """
-function root(::Val{1}, root_iterator::RootIterator, state)
+function linear_root(root_iterator::RootIterator{T1}, state)::T1 where {T1}
     return root_iterator.ab_part
 end
 
-Base.length(root_iterator::RootIterator) = root_iterator.degree
-Base.iterate(root_iterator::RootIterator) =
-    (root(Val{root_iterator.degree}(), root_iterator, 1), 2)
-Base.iterate(root_iterator::RootIterator, state) =
-    state > root_iterator.degree ? nothing :
-    (root(Val{root_iterator.degree}(), root_iterator, state), state + 1)
+function root(root_iterator::RootIterator{T1}, state)::T1 where {T1}
+    (; degree) = root_iterator
+    if degree == 4
+        quartic_root(root_iterator, state)
+    elseif degree == 3
+        cube_root(root_iterator, state)
+    elseif degree == 2
+        square_root(root_iterator, state)
+    else
+        linear_root(root_iterator, state)
+    end
+end
 
-p_coeff(c4, c3, c2) = (8 * c4 * c2 - 3 * c3^2) / (8 * c4^2)
-q_coeff(c4, c3, c2, c1) = (c3^3 - 4 * c4 * c3 * c2 + 8 * c4^2 * c1) / (8 * c4^3)
+Base.length(root_iterator::RootIterator) = root_iterator.degree
+Base.iterate(root_iterator::RootIterator) = (root(root_iterator, 1), 2)
+Base.iterate(root_iterator::RootIterator, state) =
+    state > root_iterator.degree ? nothing : (root(root_iterator, state), state + 1)
+
+function p_coeff(c4::T2, c3::T2, c2::T2)::T2 where {T2}
+    return (8 * c4 * c2 - 3 * c3^2) / (8 * c4^2)
+end
+
+function q_coeff(c4::T2, c3::T2, c2::T2, c1::T2)::T2 where {T2}
+    return (c3^3 - 4 * c4 * c3 * c2 + 8 * c4^2 * c1) / (8 * c4^3)
+end
 
 """
 Compute u_tilde, the value of u at the boundary points between linear and spline sections
