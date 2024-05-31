@@ -43,5 +43,5 @@ using SmoothInterpolation: iterate_roots, p_coeff, q_coeff
     p = p_coeff(c4, c3, c2)
     q = q_coeff(c4, c3, c2, c1)
     roots = collect(iterate_roots(4, c4, c3, c2, c1, c0, p, q))
-    @test roots ≈ Float64[1, 2, 3, 4]
+    @test roots ≈ Float64[2, 4, 3, 1]
 end

@@ -1,7 +1,7 @@
 module SmoothInterpolation
 
 using DataInterpolations:
-    DataInterpolations, AbstractInterpolation, munge_data, _interpolate
+    DataInterpolations, LinearInterpolation, AbstractInterpolation, munge_data, _interpolate
 using FindFirstFunctions: searchsortedfirstcorrelated
 
 include("cache.jl")
