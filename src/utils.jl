@@ -173,7 +173,7 @@ Compute a root of a quartic polynomial
 """
 function quartic_root(root_iterator::RootIterator{T1, T2, T3}, state)::T3 where {T1, T2, T3}
     (; ab_part, S, p, q) = root_iterator
-    # Order the states in order of likelihood of being the right one (empirically)
+    # Order the roots in order of likelihood of being the right one (empirically)
     sign_1 = state % 3 == 1 ? -1 : 1
     sign_2 = state < 3 ? 1 : -1
     root = sqrt(-4S^2 - 2p - sign_1 * q / S)
