@@ -11,6 +11,7 @@ struct SmoothedLinearInterpolationCache{uType, tType, λType <: Number}
     u_tilde::uType
     t_tilde::tType
     linear_slope::uType
+    # Whether ΔΔt is sufficiently close to 0
     degenerate_ΔΔt::Vector{Bool}
     λ::λType
 end
@@ -28,6 +29,7 @@ function SmoothedLinearInterpolationCache(u, t, λ)::SmoothedLinearInterpolation
     u_tilde = get_spline_ends(u, Δu, λ)
     t_tilde = get_spline_ends(t, Δt, λ)
     linear_slope = Δu ./ Δt
+    # Whether ΔΔt is sufficiently close to 0
     degenerate_ΔΔt = collect(isapprox.(ΔΔt, 0, atol = 1e-5))
     return SmoothedLinearInterpolationCache(
         u,
@@ -58,7 +60,7 @@ struct SmoothedLinearInterpolationIntInvCache{uType}
     # Coefficients of depressed quartic
     p::uType
     q::uType
-    # Degeneracy case
+    # Whether Δu is sufficiently close to 0
     degenerate_Δu::Vector{Bool}
 end
 
@@ -72,6 +74,7 @@ function SmoothedLinearInterpolationIntInvCache(A)
     p = p_coeff.(c4, c3, c2)
     q = q_coeff.(c4, c3, c2, c1)
 
+    # Whether Δu is sufficiently close to 0
     degenerate_Δu = collect(isapprox.(A.cache.Δu, 0, atol = 1e-5))
 
     return SmoothedLinearInterpolationIntInvCache(
