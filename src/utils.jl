@@ -104,19 +104,19 @@ function T_s(A::SmoothedLinearInterpolationIntInv, s, idx)
 end
 
 struct RootIterator{T1, T2, T3, T4, D}
-    # T1: Complex constants
-    # T2: Complex constants depending on c0,
-    # so could carry differentiation information
+    # T1: Real constants
+    # T2: Real constants depending on c0
+    # T2: Complex constants depending on c0
     degree::D
     ab_part::T4
-    c2::T2
-    c3::T2
-    Δ₀::T1
-    Δ₁::T1
-    Q::T1
-    S::T1
-    p::T3
-    q::T3
+    c2::T1
+    c3::T1
+    Δ₀::T2
+    Δ₁::T2
+    Q::T3
+    S::T3
+    p::T1
+    q::T1
 end
 
 """
@@ -129,30 +129,29 @@ and p, q are only used when degree = 4.
 """
 function iterate_roots(
     degree,
-    c4::T2,
-    c3::T2,
-    c2::T2,
-    c1::T2,
-    c0::T1,
-    p::T3,
-    q::T3,
-)::RootIterator where {T1, T2, T3}
-    Δ₀ = zero(Complex(c0))
-    Δ₁ = zero(Complex(c0))
+    c4::T1,
+    c3::T1,
+    c2::T1,
+    c1::T1,
+    c0::T2,
+    p::T1,
+    q::T1,
+)::RootIterator where {T1, T2}
+    Δ₀ = zero(c0)
+    Δ₁ = zero(c0)
     Q = zero(Complex(c0))
     S = zero(Complex(c0))
     if degree == 1
         ab_part = -c0 / c1
     elseif degree == 2
-        Δ₀ = Complex(c1^2 - 4 * c2 * c0)
+        Δ₀ = c1^2 - 4 * c2 * c0
         ab_part = -c1 / (2 * c2)
     else
-        Δ₀ = Complex(c2^2 - 3 * c3 * c1 + 12 * c4 * c0)
-        Δ₁ = Complex(
+        Δ₀ = c2^2 - 3 * c3 * c1 + 12 * c4 * c0
+        Δ₁ =
             2 * c2^3 - 9 * c3 * c2 * c1 + 27 * c3^2 * c0 + 27 * c4 * c1^2 -
-            72 * c4 * c2 * c0,
-        )
-        Q = ((Δ₁ + sqrt(Δ₁^2 - 4 * Δ₀^3)) / 2)^(1 / 3)
+            72 * c4 * c2 * c0
+        Q = ∛((Δ₁ + sqrt(Complex(Δ₁^2 - 4 * Δ₀^3))) / 2)
         if degree == 3
             ab_part = -c2 / (3 * c3)
         else
@@ -160,24 +159,19 @@ function iterate_roots(
             S = sqrt(-2 * p / 3 + (Q + Δ₀ / Q) / (3 * c4)) / 2
         end
     end
-    return RootIterator(
-        degree,
-        complex(ab_part),
-        complex(c2),
-        complex(c3),
-        Δ₀,
-        Δ₁,
-        Q,
-        S,
-        Complex(p),
-        Complex(q),
-    )
+    return RootIterator(degree, ab_part, c2, c3, Δ₀, Δ₁, Q, S, p, q)
+end
+
+function Base.cbrt(z::Complex)
+    ϕ = angle(z) / 3
+    r = abs(z)
+    return ∛(r) * Complex(cos(ϕ), sin(ϕ))
 end
 
 """
 Compute a root of a quartic polynomial
 """
-function quartic_root(root_iterator::RootIterator{T1}, state)::T1 where {T1}
+function quartic_root(root_iterator::RootIterator{T1, T2, T3}, state)::T3 where {T1, T2, T3}
     (; ab_part, S, p, q) = root_iterator
     sign_1 = state % 3 == 1 ? -1 : 1
     sign_2 = state < 3 ? 1 : -1
@@ -189,7 +183,7 @@ end
 """
 Compute a root of a cubic polynomial
 """
-function cube_root(root_iterator::RootIterator{T1}, state)::T1 where {T1}
+function cube_root(root_iterator::RootIterator{T1, T2, T3}, state)::T3 where {T1, T2, T3}
     (; c3, Q, Δ₀, ab_part) = root_iterator
     ξ = exp(2π * im / 3)
     C = Q * ξ^(state - 1)
@@ -199,7 +193,7 @@ end
 """
 Compute a root of a quadratic polynomial
 """
-function square_root(root_iterator::RootIterator{T1}, state)::T1 where {T1}
+function square_root(root_iterator::RootIterator{T1, T2, T3}, state)::T3 where {T1, T2, T3}
     (; c2, ab_part, Δ₀) = root_iterator
     return ab_part + (-1)^state * sqrt(Δ₀) / (2 * c2)
 end
@@ -207,11 +201,11 @@ end
 """
 Compute a root of a linear polynomial
 """
-function linear_root(root_iterator::RootIterator{T1}, state)::T1 where {T1}
+function linear_root(root_iterator::RootIterator{T1, T2, T3}, state)::T3 where {T1, T2, T3}
     return root_iterator.ab_part
 end
 
-function root(root_iterator::RootIterator{T1}, state)::T1 where {T1}
+function root(root_iterator::RootIterator{T1, T2, T3}, state)::T3 where {T1, T2, T3}
     (; degree) = root_iterator
     if degree == 4
         quartic_root(root_iterator, state)

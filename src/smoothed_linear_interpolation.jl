@@ -59,7 +59,7 @@ function DataInterpolations._interpolate(
 
     if idx == 1 || idx == length(u) + 1
         # Linear extrapolation
-        DataInterpolations._interpolate(A.linear_itp, t, idx)
+        DataInterpolations._interpolate(A.linear_itp, t, idx)[1]
     else
         # Interpolation
         if t < t_tilde[2 * idx - 2]
@@ -68,7 +68,7 @@ function DataInterpolations._interpolate(
             U(A, t, idx)
         else
             # Linear interpolation
-            DataInterpolations._interpolate(A.linear_itp, t, idx)
+            DataInterpolations._interpolate(A.linear_itp, t, idx)[1]
         end
     end
 end

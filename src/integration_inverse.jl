@@ -59,15 +59,19 @@ function DataInterpolations._interpolate(
         # which is linear
         Vdiff = (V - t[1])
         @assert Vdiff >= 0
-        u[1] +
-        (-cache.u[1] + sqrt(cache.u[1]^2 + 2 * cache.linear_slope[1] * Vdiff)) /
-        cache.linear_slope[1]
+        if isapprox(cache.linear_slope[1], 0; atol = 1e-5)
+            u[1] + Vdiff / cache.u[1]
+        else
+            u[1] +
+            (-cache.u[1] + sqrt(cache.u[1]^2 + 2 * cache.linear_slope[1] * Vdiff)) /
+            cache.linear_slope[1]
+        end
     elseif idx == n_points + 1
         # Extrapolation
         Vdiff = (V - t[end])
         @assert Vdiff >= 0
         if isapprox(cache.linear_slope[end], 0; atol = 1e-5)
-            u[end] + Vdiff / t[end]
+            u[end] + Vdiff / cache.u[end]
         else
             u[end] +
             (-cache.u[end] + sqrt(cache.u[end]^2 + 2 * cache.linear_slope[end] * Vdiff)) /
@@ -78,10 +82,10 @@ function DataInterpolations._interpolate(
         @assert Vdiff >= 0
 
         i = idx ÷ 2
-        c4ᵢ = Complex(c4[i])
-        c3ᵢ = Complex(c3[i])
-        c2ᵢ = Complex(c2[i])
-        c1ᵢ = Complex(c1[i])
+        c4ᵢ = c4[i]
+        c3ᵢ = c3[i]
+        c2ᵢ = c2[i]
+        c1ᵢ = c1[i]
         c0 = -Vdiff
         pᵢ = p[i]
         qᵢ = q[i]
