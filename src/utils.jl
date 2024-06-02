@@ -244,3 +244,24 @@ function get_spline_ends(u, Δu, λ)
     u_tilde[end] = u[end]
     return u_tilde
 end
+
+function DataInterpolations.LinearInterpolation(
+    itp::SmoothedLinearInterpolation;
+    n_samples = 10,
+)::LinearInterpolation
+    t = zeros(2 + (length(itp.t) - 2) * n_samples)
+    for i in eachindex(itp.t)
+        if i == 1
+            t[1] = itp.t[1]
+        elseif i == length(itp.t)
+            t[end] = itp.t[end]
+        else
+            t_tildeⱼ = itp.cache.t_tilde[2 * i - 1]
+            t_tildeⱼ₊₁ = itp.cache.t_tilde[2 * i]
+            t[(2 + (i - 2) * n_samples):(1 + (i - 1) * n_samples)] =
+                range(t_tildeⱼ, t_tildeⱼ₊₁; length = n_samples)
+        end
+    end
+    u = itp.(t)
+    return LinearInterpolation(u, t; itp.extrapolate)
+end
