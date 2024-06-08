@@ -11,6 +11,9 @@ include("integration.jl")
 include("utils.jl")
 
 export LinearInterpolationIntInv,
-    SmoothedLinearInterpolation, SmoothedLinearInterpolationIntInv
+    SmoothedLinearInterpolation,
+    SmoothedLinearInterpolationIntInv,
+    LinearInterpolation,
+    invert_integral
 
 end # SmoothInterpolation

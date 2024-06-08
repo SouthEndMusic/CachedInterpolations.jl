@@ -17,7 +17,12 @@ struct LinearInterpolationIntInv{uType, tType, T} <: AbstractInterpolation{T}
     end
 end
 
-function LinearInterpolationIntInv(A::LinearInterpolation)::LinearInterpolationIntInv
+"""
+    Invert the integral of a LinearInterpolation object, which yields 
+    LinearInterpolationIntInv object.
+"""
+function invert_integral(A::LinearInterpolation)::LinearInterpolationIntInv
+    @assert all(A.u .>= 0) "Inverting the integral is only supported for non-negative LinearInterpolation."
     t = DataInterpolations.integral.(Ref(A), A.t)
     cache = LinearInterpolationIntInvCache(A.u, A.t)
     return LinearInterpolationIntInv(A.t, t, cache, A.extrapolate)
@@ -83,9 +88,11 @@ struct SmoothedLinearInterpolationIntInv{uType, tType, λType <: Real, T} <:
     end
 end
 
-function SmoothedLinearInterpolationIntInv(
-    A::SmoothedLinearInterpolation,
-)::SmoothedLinearInterpolationIntInv
+"""
+    Invert the integral of a SmoothedLinearInterpolation object, which yields 
+    SmoothedLinearInterpolationIntInv object.
+"""
+function invert_integral(A::SmoothedLinearInterpolation)::SmoothedLinearInterpolationIntInv
     @assert all(A.u .>= 0) "Inverting the integral is only supported for non-negative SmoothedLinearInterpolation."
     (; cache, extrapolate) = A
     t = DataInterpolations.integral.(Ref(A), cache.t_tilde)

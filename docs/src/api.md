@@ -4,5 +4,7 @@ Documentation for `SmoothInterpolation.jl`'s public interface.
 
 ```@docs
 SmoothedLinearInterpolation
-SmoothedLinearInterpolationIntInv
+LinearInterpolation(::SmoothedLinearInterpolation)
+invert_integral(::LinearInterpolation)
+invert_integral(::SmoothedLinearInterpolation)
 ```

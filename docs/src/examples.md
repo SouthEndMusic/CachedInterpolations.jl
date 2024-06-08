@@ -22,12 +22,16 @@ plot!(itp, label = "Smoothed Linear Interpolation")
 ## Inverting the integral
 
 ```@example 1
-itp_int_inv = SmoothedLinearInterpolationIntInv(itp)
+itp_int_inv = invert_integral(itp)
 V = 1.0
 t_V = itp_int_inv(V)
 t_eval_V = range(t[1], t_V, length = 100)
 plot!(t_eval_V, itp.(t_eval_V), fill = (:blue, 0, 0.5), label = "area = $V")
 ```
+
+!!! tip
+    The integral inverse of `SmoothedLinearInterpolation` is expensive to compute as it involves solving a quartic equation. If performance is important to your application, consider converting your `SmoothedLinearInterpolation` object into a `LinearInterpolation` object using `LinearInterpolation(A::SmoothedLinearInterpolation; n_samples = 10)`, which samples the spline sections. The inverse of this is much cheaper.
+
 
 ## The effect of the parameter λ
 
