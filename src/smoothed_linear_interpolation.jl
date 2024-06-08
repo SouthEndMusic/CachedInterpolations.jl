@@ -43,7 +43,7 @@ function SmoothedLinearInterpolation(
     # Make sure the parameter λ is in the right range
     @assert 0 <= λ <= 1 "The parameter λ must be in the interval [0,1], got $λ."
     cache = SmoothedLinearInterpolationCache(u, t, λ)
-    linear_itp = LinearInterpolation(u, t)
+    linear_itp = LinearInterpolation(u, t; extrapolate)
     return SmoothedLinearInterpolation(u, t, cache, λ, linear_itp, extrapolate)
 end
 

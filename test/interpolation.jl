@@ -51,13 +51,29 @@ end
     ] atol = 1e-4
 end
 
+@testset "LinearInterpolationIntInv" begin
+    Random.seed!(9)
+    u = rand(5)
+    # Add degenerate case of constant u
+    push!(u, u[end])
+    t = cumsum(rand(6))
+    itp = SmoothedLinearInterpolation(u, t; extrapolate = true)
+    itp = LinearInterpolation(itp)
+    itp_int_inv = invert_integral(itp)
+    t_eval = range(t[1], t[end]; length = 200)
+    u_int_eval = DataInterpolations.integral.(Ref(itp), t_eval)
+    @test t_eval ≈ itp_int_inv.(u_int_eval)
+end
+
 @testset "SmoothedLinearInterpolationIntInv" begin
     Random.seed!(9)
     u = rand(5)
-    t = cumsum(rand(5))
-    itp = SmoothedLinearInterpolation(u, t; extrapolate = true)
-    itp_int_inv = SmoothedLinearInterpolationIntInv(itp)
-    t_eval = range(t[1], 4.0; length = 200)
-    u_eval = DataInterpolations.integral.(Ref(itp), t_eval)
-    @test t_eval ≈ itp_int_inv.(u_eval)
+    # Add degenerate case of constant u
+    push!(u, u[end])
+    t = cumsum(rand(6))
+    itp = SmoothedLinearInterpolation(u, t)
+    itp_int_inv = invert_integral(itp)
+    t_eval = range(t[1], t[end]; length = 200)
+    u_int_eval = DataInterpolations.integral.(Ref(itp), t_eval)
+    @test t_eval ≈ itp_int_inv.(u_int_eval)
 end

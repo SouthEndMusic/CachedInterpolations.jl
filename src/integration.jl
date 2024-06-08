@@ -16,7 +16,6 @@ function integrate_spline_section(A::SmoothedLinearInterpolation, idx::Number, t
     return c4 * s^4 + c3 * s^3 + c2 * s^2 + c1 * s
 end
 
-DataInterpolations.samples(A::SmoothedLinearInterpolation) = (-1, 0)
 function DataInterpolations._integral(
     A::SmoothedLinearInterpolation,
     idx::Number,
@@ -52,7 +51,7 @@ function DataInterpolations._integral(
     elseif idx == length(A.t) + 1
         # Special case of upper extrapolation
         u_t = A(t)
-        out = 0.5 * (t - A.t[end]) * (u_t + A.u[end])
+        out = 0.5 * (t - A.t[end - 1]) * (u_t + A.u[end - 1])
         return out
     else
         if t <= t_tildeᵢ₋₂

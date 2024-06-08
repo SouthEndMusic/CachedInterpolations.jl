@@ -10,6 +10,10 @@ include("integration_inverse.jl")
 include("integration.jl")
 include("utils.jl")
 
-export SmoothedLinearInterpolation, SmoothedLinearInterpolationIntInv
+export LinearInterpolationIntInv,
+    SmoothedLinearInterpolation,
+    SmoothedLinearInterpolationIntInv,
+    LinearInterpolation,
+    invert_integral
 
 end # SmoothInterpolation

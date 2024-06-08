@@ -7,6 +7,9 @@ version = "0.1.0"
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
 FindFirstFunctions = "64ca27bc-2ba2-4a57-88aa-44e436879224"
 
+[compat]
+DataInterpolations = "5.2.0"
+
 [extras]
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
