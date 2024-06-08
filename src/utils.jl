@@ -265,19 +265,19 @@ function DataInterpolations.LinearInterpolation(
     A::SmoothedLinearInterpolation;
     n_samples = 10,
 )::LinearInterpolation
-    t = zeros(2 + (length(itp.t) - 2) * n_samples)
-    for i in eachindex(itp.t)
+    t = zeros(2 + (length(A.t) - 2) * n_samples)
+    for i in eachindex(A.t)
         if i == 1
             t[1] = A.t[1]
         elseif i == length(A.t)
             t[end] = A.t[end]
         else
-            t_tildeⱼ = itp.cache.t_tilde[2 * i - 1]
-            t_tildeⱼ₊₁ = itp.cache.t_tilde[2 * i]
+            t_tildeⱼ = A.cache.t_tilde[2 * i - 1]
+            t_tildeⱼ₊₁ = A.cache.t_tilde[2 * i]
             t[(2 + (i - 2) * n_samples):(1 + (i - 1) * n_samples)] =
                 range(t_tildeⱼ, t_tildeⱼ₊₁; length = n_samples)
         end
     end
-    u = itp.(t)
-    return LinearInterpolation(u, t; itp.extrapolate)
+    u = A.(t)
+    return LinearInterpolation(u, t; A.extrapolate)
 end
