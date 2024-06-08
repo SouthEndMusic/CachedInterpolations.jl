@@ -11,6 +11,7 @@ makedocs(;
             "Inverting the integral" => "construction/inverting_the_integral.md",
         ],
         "Examples" => "examples.md",
+        "To Cache or not to Cache" => "cache.md",
         "API" => "api.md",
     ],
     format = Documenter.HTML(;

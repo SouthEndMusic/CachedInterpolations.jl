@@ -1,7 +1,9 @@
+abstract type AbstractCache{T} end
+
 """
 The cache object for LinearInterpolationIntInv computations.
 """
-struct LinearInterpolationIntInvCache{uType}
+struct LinearInterpolationIntInvCache{uType, T} <: AbstractCache{T}
     u::uType
     slope::uType
     degenerate_slope::Vector{Bool}
@@ -12,13 +14,14 @@ function LinearInterpolationIntInvCache(u, t)
     Δt = diff(t)
     slope = Δu ./ Δt
     degenerate_slope = collect(isapprox.(slope, 0, atol = 1e-5))
-    return LinearInterpolationIntInvCache(u, slope, degenerate_slope)
+    return LinearInterpolationIntInvCache{typeof(u), eltype(u)}(u, slope, degenerate_slope)
 end
 
 """
 The cache object for SmoothedLinearInterpolation computations.
 """
-struct SmoothedLinearInterpolationCache{uType, tType, λType <: Number}
+struct SmoothedLinearInterpolationCache{uType, tType, λType <: Number, T} <:
+       AbstractCache{T}
     u::uType
     t::tType
     Δu::uType
@@ -48,7 +51,7 @@ function SmoothedLinearInterpolationCache(u, t, λ)::SmoothedLinearInterpolation
     linear_slope = Δu ./ Δt
     # Whether ΔΔt is sufficiently close to 0
     degenerate_ΔΔt = collect(isapprox.(ΔΔt, 0, atol = 1e-5))
-    return SmoothedLinearInterpolationCache(
+    return SmoothedLinearInterpolationCache{typeof(u), typeof(t), typeof(λ), eltype(u)}(
         u,
         t,
         Δu,
@@ -66,7 +69,7 @@ end
 """
 The cache object for SmoothedLinearInterpolationIntInv computations.
 """
-struct SmoothedLinearInterpolationIntInvCache{uType}
+struct SmoothedLinearInterpolationIntInvCache{uType, T} <: AbstractCache{T}
     # The degree of the polynomial whose roots need to be found
     degree::Vector{Int}
     # Quartic polynomial coefficients
@@ -94,7 +97,7 @@ function SmoothedLinearInterpolationIntInvCache(A)
     # Whether Δu is sufficiently close to 0
     degenerate_Δu = collect(isapprox.(A.cache.Δu, 0, atol = 1e-5))
 
-    return SmoothedLinearInterpolationIntInvCache(
+    return SmoothedLinearInterpolationIntInvCache{typeof(A.u), eltype(A.u)}(
         degree,
         c4,
         c3,

@@ -281,3 +281,31 @@ function DataInterpolations.LinearInterpolation(
     u = A.(t)
     return LinearInterpolation(u, t; A.extrapolate)
 end
+
+function Base.show(io::IO, cache::AbstractCache{uType}) where {uType}
+    println(io, typeof(cache))
+    println(
+        io,
+        "Note: t, u stand for the inputs and outputs respectively of the original interpolation, not the inversion.",
+    )
+    data = Dict{Int, Vector{AbstractVector}}()
+    header = Dict{Int, Vector{Symbol}}()
+
+    for propertyname in propertynames(cache)
+        property = getfield(cache, propertyname)
+        if property isa AbstractVector
+            L = length(property)
+            if L ∉ keys(data)
+                data[L] = AbstractVector[]
+                header[L] = Symbol[]
+            end
+            push!(header[L], propertyname)
+            push!(data[L], property)
+        end
+    end
+    for L in keys(data)
+        data_L = hcat(data[L]...)
+        header_L = header[L]
+        pretty_table(io, data_L; header = header_L, vcrop_mode = :middle)
+    end
+end

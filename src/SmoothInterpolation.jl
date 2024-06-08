@@ -3,6 +3,7 @@ module SmoothInterpolation
 using DataInterpolations:
     DataInterpolations, LinearInterpolation, AbstractInterpolation, munge_data, _interpolate
 using FindFirstFunctions: searchsortedfirstcorrelated
+using PrettyTables
 
 include("cache.jl")
 include("smoothed_linear_interpolation.jl")
