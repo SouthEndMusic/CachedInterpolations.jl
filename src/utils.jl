@@ -245,16 +245,32 @@ function get_spline_ends(u, Δu, λ)
     return u_tilde
 end
 
+"""
+    LinearInterpolation(A::SmoothedLinearInterpolation; n_samples = 10)
+
+Converting a SmoothedLinearInterpolation object into LinearInterpolation object
+by sampling the spline sections. The main usage of this is that a LinearInterpolation
+and especially its integration inverse are much cheaper to evaluate than the 
+original smoothed equivalents.
+
+Arguments
+
+  - `A`: The SmoothedLinearInterpolation object
+
+## Keyword Arguments
+
+  - `n_samples`: The number of samples per spline section
+"""
 function DataInterpolations.LinearInterpolation(
-    itp::SmoothedLinearInterpolation;
+    A::SmoothedLinearInterpolation;
     n_samples = 10,
 )::LinearInterpolation
     t = zeros(2 + (length(itp.t) - 2) * n_samples)
     for i in eachindex(itp.t)
         if i == 1
-            t[1] = itp.t[1]
-        elseif i == length(itp.t)
-            t[end] = itp.t[end]
+            t[1] = A.t[1]
+        elseif i == length(A.t)
+            t[end] = A.t[end]
         else
             t_tildeⱼ = itp.cache.t_tilde[2 * i - 1]
             t_tildeⱼ₊₁ = itp.cache.t_tilde[2 * i]
