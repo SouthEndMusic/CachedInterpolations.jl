@@ -1,5 +1,63 @@
 """
-    SmoothedLinearInterpolation(A::SmoothedLinearInterpolation)
+    LinearInterpolationIntInv(A::SmoothedLinearInterpolation)
+
+Inverting the integral of a LinearInterpolation object if possible. The `A.u` must be non-negative.
+
+## Arguments
+
+  - A The LinearInterpolation object whose integral is inverted.
+"""
+struct LinearInterpolationIntInv{uType, tType, T} <: AbstractInterpolation{T}
+    u::uType
+    t::tType
+    cache::LinearInterpolationIntInvCache{uType, tType}
+    extrapolate::Bool
+    function LinearInterpolationIntInv(u, t, cache, extrapolate)
+        return new{typeof(u), typeof(t), eltype(u)}(u, t, cache, extrapolate)
+    end
+end
+
+function LinearInterpolationIntInv(A::LinearInterpolation)::LinearInterpolationIntInv
+    t = DataInterpolations.integral.(Ref(A), A.t)
+    cache = LinearInterpolationIntInvCache(A.u, A.t)
+    return LinearInterpolationIntInv(A.t, t, cache, A.extrapolate)
+end
+
+function DataInterpolations._interpolate(
+    A::LinearInterpolationIntInv{<:AbstractVector},
+    V::Number,
+    iguess,
+)
+    (; cache) = A
+
+    # idx of smallest idx such that A.t[idx] >= V
+    # Note that A.t denotes integrated values
+    idx = searchsortedfirstcorrelated(A.t, V, iguess)
+
+    if idx == 1
+        @assert V >= 0 "Cannot invert integral for negative input."
+        idx = 2
+    end
+
+    Vdiff = (V - A.t[idx - 1])
+    @assert Vdiff >= 0 "Vdiff must be non_negative, got V = $V, Vdiff = $Vdiff, idx = $idx"
+
+    t_prev = cache.t[idx - 1]
+    idx = min(idx, length(cache.t))
+
+    i = idx - 1
+
+    if cache.degenerate_Δu[i]
+        # Special case when LinearInterpolation is (near) constant
+        t_prev + Vdiff / cache.u[idx]
+    else
+        t_prev +
+        (-cache.u[i] + sqrt(cache.u[i]^2 + 2 * cache.slope[i] * Vdiff)) / cache.slope[i]
+    end
+end
+
+"""
+    SmoothedLinearInterpolationIntInv(A::SmoothedLinearInterpolation)
 
 Inverting the integral of a SmoothedLinearInterpolation object if possible. The `A.u` must be non-negative.
 
@@ -108,7 +166,7 @@ function DataInterpolations._interpolate(
         i = (idx - 1) ÷ 2
 
         if degenerate_Δu[i + 1]
-            # Special case when SmoothedLinearInterpolation is constant
+            # Special case when SmoothedLinearInterpolation is (near) constant
             A.u[idx - 1] + Vdiff / cache.u[i]
         else
             Δuᵢ₊₁ = cache.Δu[i + 1]
@@ -118,53 +176,5 @@ function DataInterpolations._interpolate(
             root = sqrt(u_frac^2 + λ * (u_frac + λ / 4) + 2 * Vdiff / (Δtᵢ₊₁ * Δuᵢ₊₁))
             cache.t[i] + (-u_frac + sign(u_frac) * root) * Δtᵢ₊₁
         end
-    end
-end
-
-struct LinearInterpolationIntInv{uType, tType, T} <: AbstractInterpolation{T}
-    u::uType
-    t::tType
-    cache::LinearInterpolationIntInvCache{uType, tType}
-    extrapolate::Bool
-    function LinearInterpolationIntInv(u, t, cache, extrapolate)
-        return new{typeof(u), typeof(t), eltype(u)}(u, t, cache, extrapolate)
-    end
-end
-
-function LinearInterpolationIntInv(A::LinearInterpolation)::LinearInterpolationIntInv
-    t = DataInterpolations.integral.(Ref(A), A.t)
-    cache = LinearInterpolationIntInvCache(A.u, A.t)
-    return LinearInterpolationIntInv(A.t, t, cache, A.extrapolate)
-end
-
-function DataInterpolations._interpolate(
-    A::LinearInterpolationIntInv{<:AbstractVector},
-    V::Number,
-    iguess,
-)
-    (; cache) = A
-
-    # idx of smallest idx such that A.t[idx] >= V
-    # Note that A.t denotes integrated values
-    idx = searchsortedfirstcorrelated(A.t, V, iguess)
-
-    if idx == 1
-        @assert V >= 0 "Cannot invert integral for negative input."
-        idx = 2
-    end
-
-    Vdiff = (V - A.t[idx - 1])
-    @assert Vdiff >= 0
-
-    t_prev = cache.t[idx - 1]
-    idx = min(idx, length(cache.t))
-
-    i = idx - 1
-
-    if cache.degenerate_Δu[i]
-        t_prev + Vdiff / cache.u[idx]
-    else
-        t_prev +
-        (-cache.u[i] + sqrt(cache.u[i]^2 + 2 * cache.slope[i] * Vdiff)) / cache.slope[i]
     end
 end

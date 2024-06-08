@@ -1,4 +1,24 @@
 """
+The cache object for LinearInterpolationIntInv computations.
+"""
+struct LinearInterpolationIntInvCache{uType, tType}
+    u::uType
+    t::tType
+    Δu::uType
+    Δt::tType
+    slope::uType
+    degenerate_Δu::Vector{Bool}
+end
+
+function LinearInterpolationIntInvCache(u, t)
+    Δu = diff(u)
+    Δt = diff(t)
+    slope = Δu ./ Δt
+    degenerate_Δu = collect(isapprox.(Δu, 0, atol = 1e-5))
+    return LinearInterpolationIntInvCache(u, t, Δu, Δt, slope, degenerate_Δu)
+end
+
+"""
 The cache object for SmoothedLinearInterpolation computations.
 """
 struct SmoothedLinearInterpolationCache{uType, tType, λType <: Number}
@@ -87,21 +107,4 @@ function SmoothedLinearInterpolationIntInvCache(A)
         q,
         degenerate_Δu,
     )
-end
-
-struct LinearInterpolationIntInvCache{uType, tType}
-    u::uType
-    t::tType
-    Δu::uType
-    Δt::tType
-    slope::uType
-    degenerate_Δu::Vector{Bool}
-end
-
-function LinearInterpolationIntInvCache(u, t)
-    Δu = diff(u)
-    Δt = diff(t)
-    slope = Δu ./ Δt
-    degenerate_Δu = collect(isapprox.(Δu, 0, atol = 1e-5))
-    return LinearInterpolationIntInvCache(u, t, Δu, Δt, slope, degenerate_Δu)
 end
