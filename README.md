@@ -4,10 +4,11 @@
 
 # SmoothInterpolation.jl
 
-`SmoothInterpolation.jl` exports 2 interpolation types in the style of [DataInterpolations.jl](https://github.com/SciML/DataInterpolations.jl):
+`SmoothInterpolation.jl` exports 3 interpolation types in the style of [DataInterpolations.jl](https://github.com/SciML/DataInterpolations.jl):
 
 - `SmoothedLinearInterpolation`, a type of linear interpolation with well-behaved smoothed corners;
-- `SmoothedLinearInterpolationIntInv`, the inverse of the antiderivative of a `SmoothedLinearInterpolation` if it exists.
+- `SmoothedLinearInterpolationIntInv`, the inverse of the antiderivative of a `SmoothedLinearInterpolation` if it exists;
+- `LinearInterpolationInvInv`, the inverse of the antiderivative of a `LinearInterpolation` if it exists.
 
 ## Installation
 
@@ -25,6 +26,7 @@ Not all features for interpolation objects from `DataInterpolations.jl` are curr
 | ----------------------------------- | ---------- | ------------- | ------------------------------------------ |
 | `SmoothedLinearInterpolation`       | Supported  | Not supported | Supported                                  |
 | `SmoothedLinearInterpolationIntInv` | Supported  | Not supported | Not supported                              |
+| `LinearInterpolationIntInv`         | Supported  | Not supported | Not supported                              |
 
 If you wish to use one of the currently unsupported features, please [write an issue](https://github.com/SouthEndMusic/SmoothInterpolation.jl/issues). Note that differentiation can be achieved with many of the [automatic differentiation packages](https://juliadiff.org/#the_big_list) in the Julia ecosystem.
 
