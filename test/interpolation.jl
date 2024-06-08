@@ -24,6 +24,7 @@ using Random
         2.20716,
         2.48164,
     ] atol = 1e-4
+    @test_nowarn string(itp.cache)
 end
 
 @testset "SmoothedLinearInterpolation non-degenerate" begin
@@ -49,6 +50,7 @@ end
         2.37415,
         2.42469,
     ] atol = 1e-4
+    @test_nowarn string(itp)
 end
 
 @testset "LinearInterpolationIntInv" begin
@@ -63,6 +65,7 @@ end
     t_eval = range(t[1], t[end]; length = 200)
     u_int_eval = DataInterpolations.integral.(Ref(itp), t_eval)
     @test t_eval ≈ itp_int_inv.(u_int_eval)
+    @test_nowarn string(itp_int_inv.cache)
 end
 
 @testset "SmoothedLinearInterpolationIntInv" begin
@@ -76,4 +79,5 @@ end
     t_eval = range(t[1], t[end]; length = 200)
     u_int_eval = DataInterpolations.integral.(Ref(itp), t_eval)
     @test t_eval ≈ itp_int_inv.(u_int_eval)
+    @test_nowarn string(itp_int_inv.cache_integration)
 end
