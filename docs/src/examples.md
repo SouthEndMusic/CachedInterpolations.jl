@@ -53,3 +53,36 @@ end
 
 pl
 ```
+
+## Derivatives
+
+Derivatives can be calculated using `DataInterpolations.derivative(itp, t)`. There is a quite simple relationship between the derivative of the inverse of the integral of a function and the function itself:
+
+$$
+\quad (F^{-1})'(V) = \frac{1}{f(F^{-1}(V))}.
+$$
+
+
+See also the code example below.
+
+```@example 1
+using DataInterpolations
+using ForwardDiff
+Random.seed!(15) # hide
+
+t = cumsum(rand(10))
+u = rand(10)
+
+itp = SmoothedLinearInterpolation(u, t; extrapolate = true)
+itp_int_inv = invert_integral(itp)
+u_int_eval = itp_int_inv.t[1]:0.01:(itp_int_inv.t[end] + 1)
+
+# Compute the hardcoded SmoothedLinearInterpolationIntInv derivative
+t_deriv_eval = DataInterpolations.derivative.(Ref(itp_int_inv), u_int_eval)
+
+# Compute the SmoothedLinearInterpolationIntInv derivative using ForwardDiff
+t_deriv_forward_diff = ForwardDiff.derivative.(Ref(itp_int_inv), u_int_eval)
+
+@show t_deriv_eval ≈ 1 ./ itp.(itp_int_inv.(u_int_eval))
+@show t_deriv_eval ≈ t_deriv_forward_diff;
+```
