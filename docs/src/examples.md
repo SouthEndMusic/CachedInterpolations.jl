@@ -58,9 +58,9 @@ pl
 
 Derivatives can be calculated using `DataInterpolations.derivative(itp, t)`. There is a quite simple relationship between the derivative of the inverse of the integral of a function and the function itself:
 
-$$
-\quad (F^{-1})'(V) = \frac{1}{f(F^{-1}(V))}.
-$$
+```math
+(F^{-1})'(V) = \frac{1}{f(F^{-1}(V))}.
+```
 
 
 See also the code example below.
