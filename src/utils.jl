@@ -1,7 +1,7 @@
 """
     S(A, t, idx)
 
-Compute the spline parameter `s` from from the time `t`.
+Compute the spline parameter `s` from the time `t`.
 
     ## Arguments
 
@@ -28,7 +28,34 @@ function S(A::SmoothedLinearInterpolation, t, idx)
 end
 
 """
-    S(A, t, idx)
+    S_deriv(A, t, idx)
+
+Compute the derivative of the spline parameter `s` at the time `t`.
+
+    ## Arguments
+
+    - `A`: The `SmoothedLinearInterpolation` object
+    - `t`: The time point
+    - `idx`: The index indicating which spline section
+"""
+function S_deriv(A::SmoothedLinearInterpolation, t, idx)
+    (; Δt, ΔΔt, degenerate_ΔΔt, t_tilde, λ) = A.cache
+    Δtᵢ = Δt[idx]
+    ΔΔtᵢ = ΔΔt[idx]
+    tdiff = t - t_tilde[2 * idx - 1]
+    @assert tdiff >= 0
+
+    if degenerate_ΔΔt[idx]
+        # Degenerate case Δtᵢ₊₁ ≈ Δtᵢ
+        s_deriv = 1 / (λ * Δtᵢ)
+    else
+        s_deriv = 1 / (λ * sqrt(Δtᵢ^2 + 2 * ΔΔtᵢ * tdiff / λ))
+    end
+    return s_deriv
+end
+
+"""
+    U(A, t, idx)
 
 Compute the spline value `u` at the time `t`.
 
@@ -43,8 +70,14 @@ function U(A::SmoothedLinearInterpolation, t, idx)
     return U_s(A, s, idx)
 end
 
+function U_deriv(A::SmoothedLinearInterpolation, t, idx)
+    s = S(A, t, idx)
+    s_deriv = S_deriv(A, t, idx)
+    return U_s_deriv(A, s, idx) * s_deriv
+end
+
 """
-    S(A, t, idx)
+    U_s(A, t, idx)
 
 Compute the spline value `u` from the spline parameter `s`.
 
@@ -59,6 +92,24 @@ function U_s(A::AbstractInterpolation, s, idx)
     Δuᵢ = Δu[idx]
     ΔΔuᵢ = ΔΔu[idx]
     return λ / 2 * ΔΔuᵢ * s^2 + λ * Δuᵢ * s + u_tilde[2 * idx - 1]
+end
+
+"""
+    U_s_deriv(A, t, idx)
+
+Compute the derivative of the spline value `u` at the spline parameter value `s`.
+
+    ## Arguments
+
+    - `A`: The `SmoothedLinearInterpolation` object
+    - `s`: The spline parameter value
+    - `idx`: The index indicating which spline section
+"""
+function U_s_deriv(A::AbstractInterpolation, s, idx)
+    (; Δu, ΔΔu, λ) = A.cache
+    Δuᵢ = Δu[idx]
+    ΔΔuᵢ = ΔΔu[idx]
+    return λ * ΔΔuᵢ * s + λ * Δuᵢ
 end
 
 """
@@ -94,7 +145,15 @@ Determine whether a value s is valid, i.e.
 valid(s) = isapprox(imag(s), 0; atol = 1e-4) && (0 <= real(s) <= 1)
 
 """
-Compute t of a spline section from s.
+    T_s(A, t, idx)
+
+Compute the time `t` from the spline parameter `s`.
+
+    ## Arguments
+
+    - `A`: The `SmoothedLinearInterpolation` object
+    - `s`: The spline parameter value
+    - `idx`: The index indicating which spline section
 """
 function T_s(A::SmoothedLinearInterpolationIntInv, s, idx)
     (; Δt, ΔΔt, t_tilde, λ) = A.cache
@@ -308,4 +367,20 @@ function Base.show(io::IO, cache::AbstractCache{uType}) where {uType}
         header_L = header[L]
         pretty_table(io, data_L; header = header_L, vcrop_mode = :middle)
     end
+end
+
+function forward_itp(A::LinearInterpolationIntInv)
+    return LinearInterpolation(A.cache.u, A.u; A.extrapolate)
+end
+
+function forward_itp(A::SmoothedLinearInterpolationIntInv)
+    linear_itp = DataInterpolations.LinearInterpolation(A.cache.u, A.cache.t)
+    return SmoothedLinearInterpolation(
+        A.cache.u,
+        A.cache.t,
+        A.cache,
+        A.cache.λ,
+        linear_itp,
+        A.extrapolate,
+    )
 end

@@ -52,7 +52,7 @@ function DataInterpolations._interpolate(
     t::Number,
     iguess,
 )
-    (; u, t_tilde, linear_slope) = A.cache
+    (; u, t_tilde) = A.cache
 
     # idx of smallest idx such that A.t[idx] >= t
     idx = searchsortedfirstcorrelated(A.t, t, iguess)
