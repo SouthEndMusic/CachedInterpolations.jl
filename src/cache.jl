@@ -1,11 +1,8 @@
 """
 The cache object for LinearInterpolationIntInv computations.
 """
-struct LinearInterpolationIntInvCache{uType, tType}
+struct LinearInterpolationIntInvCache{uType}
     u::uType
-    t::tType
-    Δu::uType
-    Δt::tType
     slope::uType
     degenerate_Δu::Vector{Bool}
 end
@@ -15,7 +12,7 @@ function LinearInterpolationIntInvCache(u, t)
     Δt = diff(t)
     slope = Δu ./ Δt
     degenerate_Δu = collect(isapprox.(Δu, 0, atol = 1e-5))
-    return LinearInterpolationIntInvCache(u, t, Δu, Δt, slope, degenerate_Δu)
+    return LinearInterpolationIntInvCache(u, slope, degenerate_Δu)
 end
 
 """

@@ -10,7 +10,7 @@ Inverting the integral of a LinearInterpolation object if possible. The `A.u` mu
 struct LinearInterpolationIntInv{uType, tType, T} <: AbstractInterpolation{T}
     u::uType
     t::tType
-    cache::LinearInterpolationIntInvCache{uType, tType}
+    cache::LinearInterpolationIntInvCache{uType}
     extrapolate::Bool
     function LinearInterpolationIntInv(u, t, cache, extrapolate)
         return new{typeof(u), typeof(t), eltype(u)}(u, t, cache, extrapolate)
@@ -42,8 +42,8 @@ function DataInterpolations._interpolate(
     Vdiff = (V - A.t[idx - 1])
     @assert Vdiff >= 0 "Vdiff must be non_negative, got V = $V, Vdiff = $Vdiff, idx = $idx"
 
-    t_prev = cache.t[idx - 1]
-    idx = min(idx, length(cache.t))
+    t_prev = A.u[idx - 1]
+    idx = min(idx, length(A.u))
 
     i = idx - 1
 
