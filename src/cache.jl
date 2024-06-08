@@ -4,15 +4,15 @@ The cache object for LinearInterpolationIntInv computations.
 struct LinearInterpolationIntInvCache{uType}
     u::uType
     slope::uType
-    degenerate_Δu::Vector{Bool}
+    degenerate_slope::Vector{Bool}
 end
 
 function LinearInterpolationIntInvCache(u, t)
     Δu = diff(u)
     Δt = diff(t)
     slope = Δu ./ Δt
-    degenerate_Δu = collect(isapprox.(Δu, 0, atol = 1e-5))
-    return LinearInterpolationIntInvCache(u, slope, degenerate_Δu)
+    degenerate_slope = collect(isapprox.(slope, 0, atol = 1e-5))
+    return LinearInterpolationIntInvCache(u, slope, degenerate_slope)
 end
 
 """

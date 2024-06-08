@@ -52,7 +52,7 @@ function DataInterpolations._interpolate(
 
     i = idx - 1
 
-    if cache.degenerate_Δu[i]
+    if cache.degenerate_slope[i]
         # Special case when LinearInterpolation is (near) constant
         t_prev + Vdiff / cache.u[idx]
     else
