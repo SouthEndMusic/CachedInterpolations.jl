@@ -85,5 +85,5 @@ t_deriv_forward_diff = ForwardDiff.derivative.(Ref(itp_int_inv), u_int_eval)
 
 # Compare results
 @show t_deriv_eval ≈ 1 ./ itp.(itp_int_inv.(u_int_eval))
-@show t_deriv_eval ≈ t_deriv_forward_diff;
+@show t_deriv_eval ≈ t_deriv_forward_diff
 ```
