@@ -1,3 +1,5 @@
+abstract type AbstractInterpolationIntInv{T} <: AbstractInterpolation{T} end
+
 """
     LinearInterpolationIntInv(A::SmoothedLinearInterpolation)
 
@@ -7,7 +9,7 @@ Inverting the integral of a LinearInterpolation object if possible. The `A.u` mu
 
   - A The LinearInterpolation object whose integral is inverted.
 """
-struct LinearInterpolationIntInv{uType, tType, T} <: AbstractInterpolation{T}
+struct LinearInterpolationIntInv{uType, tType, T} <: AbstractInterpolationIntInv{T}
     u::uType
     t::tType
     cache::LinearInterpolationIntInvCache{uType}
@@ -71,7 +73,7 @@ Inverting the integral of a SmoothedLinearInterpolation object if possible. The 
   - A The SmoothedLinearInterpolation object whose integral is inverted.
 """
 struct SmoothedLinearInterpolationIntInv{uType, tType, λType <: Real, T} <:
-       AbstractInterpolation{T}
+       AbstractInterpolationIntInv{T}
     u::uType
     t::tType
     cache::SmoothedLinearInterpolationCache{uType, tType, λType}
