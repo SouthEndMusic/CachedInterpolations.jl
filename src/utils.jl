@@ -351,7 +351,7 @@ function Base.show(io::IO, cache::AbstractCache{uType}) where {uType}
 end
 
 function forward_itp(A::LinearInterpolationIntInv)
-    return LinearInterpolation(A.cache.u, A.u)
+    return LinearInterpolation(A.cache.u, A.u; A.extrapolate)
 end
 
 function forward_itp(A::SmoothedLinearInterpolationIntInv)

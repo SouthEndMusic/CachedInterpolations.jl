@@ -41,6 +41,10 @@ function DataInterpolations._interpolate(
     # Note that A.t denotes integrated values
     idx = searchsortedfirstcorrelated(A.t, V, iguess)
 
+    if idx == length(A.t) + 1
+        idx -= 1
+    end
+
     if idx == 1
         @assert V >= 0 "Cannot invert integral for negative input."
         idx = 2
