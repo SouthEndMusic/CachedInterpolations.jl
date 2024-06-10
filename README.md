@@ -1,4 +1,5 @@
 [![codecov](https://codecov.io/gh/SouthEndMusic/SmoothInterpolation.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/SouthEndmusic/SmoothInterpolation.jl)
+[![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://southendmusic.github.io/SmoothInterpolation.jl/dev/)
 
 <img src="docs/src/assets/logo.svg" width="200">
 
