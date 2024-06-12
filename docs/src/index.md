@@ -8,10 +8,10 @@
 
 ## Installation
 
-Currently you can only install as below.
+Simply run the code below from the package manager.
 
 ```
-pkg> dev https://github.com/SouthEndMusic/SmoothInterpolation.jl
+pkg> add SmoothInterpolation
 ```
 
 ## Supported features
