@@ -1,5 +1,21 @@
 abstract type AbstractCache{T} end
 
+struct LinearInterpolationCache{uType, T} <: AbstractCache{T}
+    slope::uType
+    idx_prev::Base.RefValue{Int}
+    function LinearInterpolationCache(slope, idx_prev::Base.RefValue{Int})
+        new{typeof(slope), eltype(slope)}(slope, idx_prev)
+    end
+end
+
+function LinearInterpolationCache(u, t)
+    Δu = diff(u)
+    Δt = diff(t)
+    slope = Δu ./ Δt
+    pushfirst!(slope, first(slope))
+    return LinearInterpolationCache(slope, Ref(1))
+end
+
 """
 The cache object for LinearInterpolationIntInv computations.
 """
@@ -47,10 +63,10 @@ function SmoothedLinearInterpolationCache(u, t, λ)::SmoothedLinearInterpolation
     Δu = diff(u)
     Δt = diff(t)
     @assert !any(iszero.(Δt))
-    pushfirst!(Δt, Δt[1])
-    push!(Δt, Δt[end])
-    pushfirst!(Δu, Δu[1])
-    push!(Δu, Δu[end])
+    pushfirst!(Δt, first(Δt))
+    push!(Δt, last(Δt))
+    pushfirst!(Δu, first(Δu))
+    push!(Δu, last(Δu))
     ΔΔu = diff(Δu)
     ΔΔt = diff(Δt)
     u_tilde = get_spline_ends(u, Δu, λ)

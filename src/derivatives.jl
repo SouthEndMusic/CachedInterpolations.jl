@@ -7,7 +7,7 @@ function DataInterpolations._derivative(
 
     # idx of smallest idx such that A.t[idx] >= t
     idx = searchsortedfirstcorrelated(A.t, t, idx_prev[])
-    A.cache.idx_prev[] = idx
+    idx_prev[] = idx
 
     if idx == 1 || idx == length(u) + 1
         # Linear extrapolation

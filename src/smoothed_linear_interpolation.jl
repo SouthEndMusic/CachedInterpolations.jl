@@ -1,3 +1,34 @@
+struct CLinearInterpolation{uType, tType, T} <: AbstractInterpolation{T}
+    u::uType
+    t::tType
+    cache::LinearInterpolationCache{uType}
+    extrapolate::Bool
+    function CLinearInterpolation(u, t, cache, extrapolate)
+        new{typeof(u), typeof(t), eltype(u)}(u, t, cache, extrapolate)
+    end
+end
+
+function CLinearInterpolation(u, t; extrapolate = false)::CLinearInterpolation
+    u, t = munge_data(u, t)
+    cache = LinearInterpolationCache(u, t)
+    return CLinearInterpolation(u, t, cache, extrapolate)
+end
+
+function DataInterpolations._interpolate(
+    A::CLinearInterpolation{<:AbstractVector},
+    t::Number,
+    iguess,
+)
+    (; slope, idx_prev) = A.cache
+
+    # idx of smallest idx such that A.t[idx] >= t
+    idx = searchsortedfirstcorrelated(A.t, t, idx_prev[])
+    idx = min(idx, length(slope))
+    idx_prev[] = idx
+
+    return A.u[idx] + slope[idx] * (t - A.t[idx])
+end
+
 """
     SmoothedLinearInterpolation(u, t; λ = 0.25, extrapolate = false)
 
@@ -56,7 +87,7 @@ function DataInterpolations._interpolate(
 
     # idx of smallest idx such that A.t[idx] >= t
     idx = searchsortedfirstcorrelated(A.t, t, idx_prev[])
-    A.cache.idx_prev[] = idx
+    idx_prev[] = idx
 
     if idx == 1 || idx == length(u) + 1
         # Linear extrapolation
