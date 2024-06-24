@@ -2,6 +2,18 @@ using DataInterpolations
 using SmoothInterpolation
 using Random
 
+@testset "CLinearInterpolation" begin
+    Random.seed!(42)
+
+    u = cumsum(rand(5))
+    t = [1.0, 2.0, 3.0, 4.0, 5.0]
+    itp = LinearInterpolation(u, t)
+    citp = CLinearInterpolation(u, t)
+
+    t_eval = 1.5:0.3:5.0
+    @test citp.(t_eval) ≈ itp.(t_eval)
+end
+
 @testset "CSmoothedLinearInterpolation degenerate" begin
     Random.seed!(1)
 
