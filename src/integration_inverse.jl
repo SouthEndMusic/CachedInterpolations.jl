@@ -39,7 +39,8 @@ function DataInterpolations._interpolate(
 
     # idx of smallest idx such that A.t[idx] >= V
     # Note that A.t denotes integrated values
-    idx = searchsortedfirstcorrelated(A.t, V, iguess)
+    idx = searchsortedfirstcorrelated(A.t, V, cache.idx_prev[])
+    A.cache.idx_prev[] = idx
 
     if idx == length(A.t) + 1
         idx -= 1
@@ -118,7 +119,8 @@ function DataInterpolations._interpolate(
 
     # idx of smallest idx such that A.t[idx] >= V
     # Note that A.t denotes integrated values
-    idx = searchsortedfirstcorrelated(A.t, V, iguess)
+    idx = searchsortedfirstcorrelated(A.t, V, cache.idx_prev[])
+    A.cache.idx_prev[] = idx
 
     if idx == 1
         @assert V >= 0 "Cannot invert integral for negative input."

@@ -7,6 +7,7 @@ struct LinearInterpolationIntInvCache{uType, T} <: AbstractCache{T}
     u::uType
     slope::uType
     degenerate_slope::Vector{Bool}
+    idx_prev::Base.RefValue{Int}
 end
 
 function LinearInterpolationIntInvCache(u, t)
@@ -14,7 +15,12 @@ function LinearInterpolationIntInvCache(u, t)
     Δt = diff(t)
     slope = Δu ./ Δt
     degenerate_slope = collect(isapprox.(slope, 0, atol = 1e-5))
-    return LinearInterpolationIntInvCache{typeof(u), eltype(u)}(u, slope, degenerate_slope)
+    return LinearInterpolationIntInvCache{typeof(u), eltype(u)}(
+        u,
+        slope,
+        degenerate_slope,
+        Ref(1),
+    )
 end
 
 """
@@ -34,6 +40,7 @@ struct SmoothedLinearInterpolationCache{uType, tType, λType <: Number, T} <:
     # Whether ΔΔt is sufficiently close to 0
     degenerate_ΔΔt::Vector{Bool}
     λ::λType
+    idx_prev::Base.RefValue{Int}
 end
 
 function SmoothedLinearInterpolationCache(u, t, λ)::SmoothedLinearInterpolationCache
@@ -63,6 +70,7 @@ function SmoothedLinearInterpolationCache(u, t, λ)::SmoothedLinearInterpolation
         linear_slope,
         degenerate_ΔΔt,
         λ,
+        Ref(1),
     )
 end
 
@@ -82,6 +90,7 @@ struct SmoothedLinearInterpolationIntInvCache{uType, T} <: AbstractCache{T}
     q::uType
     # Whether Δu is sufficiently close to 0
     degenerate_Δu::Vector{Bool}
+    idx_prev::Base.RefValue{Int}
 end
 
 function SmoothedLinearInterpolationIntInvCache(A)
@@ -106,5 +115,6 @@ function SmoothedLinearInterpolationIntInvCache(A)
         p,
         q,
         degenerate_Δu,
+        Ref(1),
     )
 end

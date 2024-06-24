@@ -21,14 +21,15 @@ function DataInterpolations._integral(
     idx::Number,
     t::Number,
 )
-    (; u_tilde, t_tilde) = A.cache
+    (; u_tilde, t_tilde, idx_prev) = A.cache
 
     if t == A.t[idx]
         return zero(eltype(A.u))
     end
 
     # idx of smallest idx such that A.t[idx] >= t
-    idx = searchsortedfirstcorrelated(A.t, t, idx)
+    idx = searchsortedfirstcorrelated(A.t, t, idx_prev[])
+    A.cache.idx_prev[] = idx
 
     i = 2 * idx
     u_tildeᵢ₋₃ = u_tilde[i - 3]

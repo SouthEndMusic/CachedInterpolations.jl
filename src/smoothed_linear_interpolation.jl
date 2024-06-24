@@ -52,10 +52,11 @@ function DataInterpolations._interpolate(
     t::Number,
     iguess,
 )
-    (; u, t_tilde) = A.cache
+    (; u, t_tilde, idx_prev) = A.cache
 
     # idx of smallest idx such that A.t[idx] >= t
-    idx = searchsortedfirstcorrelated(A.t, t, iguess)
+    idx = searchsortedfirstcorrelated(A.t, t, idx_prev[])
+    A.cache.idx_prev[] = idx
 
     if idx == 1 || idx == length(u) + 1
         # Linear extrapolation
