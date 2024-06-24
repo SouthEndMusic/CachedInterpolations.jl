@@ -21,7 +21,7 @@ y_dots = R * sin.(phi)
 N = 100
 setline(10)
 for λ in 0.5:0.25:1.0
-    itp = SmoothedLinearInterpolation(y_dots, x_dots; λ, extrapolate = true)
+    itp = CSmoothedLinearInterpolation(y_dots, x_dots; λ, extrapolate = true)
     x_curve = range(x_dots[1], x_dots[end]; length = N)
     y_curve = itp.(x_curve)
     points = Point.(x_curve, y_curve)

@@ -1,37 +1,39 @@
 abstract type AbstractInterpolationIntInv{T} <: AbstractInterpolation{T} end
 
 """
-    LinearInterpolationIntInv(A::SmoothedLinearInterpolation)
+    CLinearInterpolationIntInv(A::CSmoothedLinearInterpolation)
 
-Inverting the integral of a LinearInterpolation object if possible. The `A.u` must be non-negative.
+Inverting the integral of a (C)LinearInterpolation object if possible. The `A.u` must be non-negative.
 
 ## Arguments
 
-  - A The LinearInterpolation object whose integral is inverted.
+  - A The (C)LinearInterpolation object whose integral is inverted.
 """
-struct LinearInterpolationIntInv{uType, tType, T} <: AbstractInterpolationIntInv{T}
+struct CLinearInterpolationIntInv{uType, tType, T} <: AbstractInterpolationIntInv{T}
     u::uType
     t::tType
-    cache::LinearInterpolationIntInvCache{uType}
+    cache::CLinearInterpolationIntInvCache{uType}
     extrapolate::Bool
-    function LinearInterpolationIntInv(u, t, cache, extrapolate)
+    function CLinearInterpolationIntInv(u, t, cache, extrapolate)
         return new{typeof(u), typeof(t), eltype(u)}(u, t, cache, extrapolate)
     end
 end
 
 """
-    Invert the integral of a LinearInterpolation object, which yields 
-    LinearInterpolationIntInv object.
+    Invert the integral of a (C)LinearInterpolation object, which yields a
+    CLinearInterpolationIntInv object.
 """
-function invert_integral(A::LinearInterpolation)::LinearInterpolationIntInv
-    @assert all(A.u .>= 0) "Inverting the integral is only supported for non-negative LinearInterpolation."
+function invert_integral(
+    A::Union{LinearInterpolation, CLinearInterpolation},
+)::CLinearInterpolationIntInv
+    @assert all(A.u .>= 0) "Inverting the integral is only supported for non-negative (C)LinearInterpolation."
     t = DataInterpolations.integral.(Ref(A), A.t)
-    cache = LinearInterpolationIntInvCache(A.u, A.t)
-    return LinearInterpolationIntInv(A.t, t, cache, A.extrapolate)
+    cache = CLinearInterpolationIntInvCache(A.u, A.t)
+    return CLinearInterpolationIntInv(A.t, t, cache, A.extrapolate)
 end
 
 function DataInterpolations._interpolate(
-    A::LinearInterpolationIntInv{<:AbstractVector},
+    A::CLinearInterpolationIntInv{<:AbstractVector},
     V::Number,
     iguess,
 )
@@ -40,7 +42,7 @@ function DataInterpolations._interpolate(
     # idx of smallest idx such that A.t[idx] >= V
     # Note that A.t denotes integrated values
     idx = searchsortedfirstcorrelated(A.t, V, cache.idx_prev[])
-    A.cache.idx_prev[] = idx
+    cache.idx_prev[] = idx
 
     if idx == length(A.t) + 1
         idx -= 1
@@ -69,22 +71,22 @@ function DataInterpolations._interpolate(
 end
 
 """
-    SmoothedLinearInterpolationIntInv(A::SmoothedLinearInterpolation)
+    CSmoothedLinearInterpolationIntInv(A::CSmoothedLinearInterpolation)
 
-Inverting the integral of a SmoothedLinearInterpolation object if possible. The `A.u` must be non-negative.
+Inverting the integral of a CSmoothedLinearInterpolation object if possible. The `A.u` must be non-negative.
 
 ## Arguments
 
-  - A The SmoothedLinearInterpolation object whose integral is inverted.
+  - A The CSmoothedLinearInterpolation object whose integral is inverted.
 """
-struct SmoothedLinearInterpolationIntInv{uType, tType, λType <: Real, T} <:
+struct CSmoothedLinearInterpolationIntInv{uType, tType, λType <: Real, T} <:
        AbstractInterpolationIntInv{T}
     u::uType
     t::tType
-    cache::SmoothedLinearInterpolationCache{uType, tType, λType}
-    cache_integration::SmoothedLinearInterpolationIntInvCache{uType}
+    cache::CSmoothedLinearInterpolationCache{uType, tType, λType}
+    cache_integration::CSmoothedLinearInterpolationIntInvCache{uType}
     extrapolate::Bool
-    function SmoothedLinearInterpolationIntInv(u, t, cache, cache_int, λ, extrapolate)
+    function CSmoothedLinearInterpolationIntInv(u, t, cache, cache_int, λ, extrapolate)
         return new{typeof(u), typeof(t), typeof(λ), eltype(u)}(
             u,
             t,
@@ -96,20 +98,22 @@ struct SmoothedLinearInterpolationIntInv{uType, tType, λType <: Real, T} <:
 end
 
 """
-    Invert the integral of a SmoothedLinearInterpolation object, which yields 
-    SmoothedLinearInterpolationIntInv object.
+    Invert the integral of a CSmoothedLinearInterpolation object, which yields 
+    CSmoothedLinearInterpolationIntInv object.
 """
-function invert_integral(A::SmoothedLinearInterpolation)::SmoothedLinearInterpolationIntInv
-    @assert all(A.u .>= 0) "Inverting the integral is only supported for non-negative SmoothedLinearInterpolation."
+function invert_integral(
+    A::CSmoothedLinearInterpolation,
+)::CSmoothedLinearInterpolationIntInv
+    @assert all(A.u .>= 0) "Inverting the integral is only supported for non-negative CSmoothedLinearInterpolation."
     (; cache, extrapolate) = A
     t = DataInterpolations.integral.(Ref(A), cache.t_tilde)
     u = cache.t_tilde
-    cache_int = SmoothedLinearInterpolationIntInvCache(A)
-    return SmoothedLinearInterpolationIntInv(u, t, cache, cache_int, cache.λ, extrapolate)
+    cache_int = CSmoothedLinearInterpolationIntInvCache(A)
+    return CSmoothedLinearInterpolationIntInv(u, t, cache, cache_int, cache.λ, extrapolate)
 end
 
 function DataInterpolations._interpolate(
-    A::SmoothedLinearInterpolationIntInv{<:AbstractVector},
+    A::CSmoothedLinearInterpolationIntInv{<:AbstractVector},
     V::Number,
     iguess,
 )
@@ -120,7 +124,7 @@ function DataInterpolations._interpolate(
     # idx of smallest idx such that A.t[idx] >= V
     # Note that A.t denotes integrated values
     idx = searchsortedfirstcorrelated(A.t, V, cache.idx_prev[])
-    A.cache.idx_prev[] = idx
+    cache.idx_prev[] = idx
 
     if idx == 1
         @assert V >= 0 "Cannot invert integral for negative input."
@@ -175,13 +179,13 @@ function DataInterpolations._interpolate(
 
         error("No valid root found, got $(collect(root_iterator)) for V = $V.")
     else
-        # Linear section of SmoothedLinearInterpolation
+        # Linear section of CSmoothedLinearInterpolation
         Vdiff = (V - A.t[idx - 1])
         @assert Vdiff >= 0
         i = (idx - 1) ÷ 2
 
         if degenerate_Δu[i + 1]
-            # Special case when SmoothedLinearInterpolation is (near) constant
+            # Special case when CSmoothedLinearInterpolation is (near) constant
             A.u[idx - 1] + Vdiff / cache.u[i]
         else
             Δuᵢ₊₁ = cache.Δu[i + 1]

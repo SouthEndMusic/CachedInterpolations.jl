@@ -2,12 +2,12 @@ using DataInterpolations
 using SmoothInterpolation
 using Random
 
-@testset "SmoothedLinearInterpolation degenerate" begin
+@testset "CSmoothedLinearInterpolation degenerate" begin
     Random.seed!(1)
 
     u = cumsum(rand(5))
     t = [1.0, 2.0, 3.0, 4.0, 5.0]
-    itp = SmoothedLinearInterpolation(u, t)
+    itp = CSmoothedLinearInterpolation(u, t)
 
     @test all(itp.cache.ΔΔt .≈ 0)
     @test itp.(1.5:0.3:5.0) ≈ [
@@ -27,11 +27,11 @@ using Random
     @test_nowarn string(itp.cache)
 end
 
-@testset "SmoothedLinearInterpolation non-degenerate" begin
+@testset "CSmoothedLinearInterpolation non-degenerate" begin
     Random.seed!(2)
     u = cumsum(rand(5))
     t = cumsum(rand(5) .+ (1:5))
-    itp = SmoothedLinearInterpolation(u, t)
+    itp = CSmoothedLinearInterpolation(u, t)
 
     @test !any(itp.cache.ΔΔt[2:(end - 1)] .≈ 0)
     @test itp.(t[1]:1.2:t[end]) ≈ [
@@ -53,14 +53,14 @@ end
     @test_nowarn string(itp)
 end
 
-@testset "LinearInterpolationIntInv" begin
+@testset "CLinearInterpolationIntInv" begin
     Random.seed!(9)
     u = rand(5)
     # Add degenerate case of constant u
     push!(u, u[end])
     t = cumsum(rand(6))
-    itp = SmoothedLinearInterpolation(u, t; extrapolate = true)
-    itp = LinearInterpolation(itp)
+    itp = CSmoothedLinearInterpolation(u, t; extrapolate = true)
+    itp = CLinearInterpolation(itp)
     itp_int_inv = invert_integral(itp)
     t_eval = range(t[1], t[end]; length = 200)
     u_int_eval = DataInterpolations.integral.(Ref(itp), t_eval)
@@ -68,13 +68,13 @@ end
     @test_nowarn string(itp_int_inv.cache)
 end
 
-@testset "SmoothedLinearInterpolationIntInv" begin
+@testset "CSmoothedLinearInterpolationIntInv" begin
     Random.seed!(9)
     u = rand(5)
     # Add degenerate case of constant u
     push!(u, u[end])
     t = cumsum(rand(6))
-    itp = SmoothedLinearInterpolation(u, t)
+    itp = CSmoothedLinearInterpolation(u, t)
     itp_int_inv = invert_integral(itp)
     t_eval = range(t[1], t[end]; length = 200)
     u_int_eval = DataInterpolations.integral.(Ref(itp), t_eval)

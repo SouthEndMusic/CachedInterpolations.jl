@@ -10,7 +10,7 @@ using SmoothInterpolation
 u = rand(10)
 t = cumsum(rand(10))
 
-itp = SmoothedLinearInterpolation(u, t)
+itp = CSmoothedLinearInterpolation(u, t)
 itp.cache
 ```
 

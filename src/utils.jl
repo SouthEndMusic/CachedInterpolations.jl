@@ -5,11 +5,11 @@ Compute the spline parameter `s` from the time `t`.
 
     ## Arguments
 
-    - `A`: The `SmoothedLinearInterpolation` object
+    - `A`: The `CSmoothedLinearInterpolation` object
     - `t`: The time point
     - `idx`: The index indicating which spline section
 """
-function S(A::SmoothedLinearInterpolation, t, idx)
+function S(A::CSmoothedLinearInterpolation, t, idx)
     (; Δt, ΔΔt, degenerate_ΔΔt, t_tilde, λ) = A.cache
     Δtᵢ = Δt[idx]
     ΔΔtᵢ = ΔΔt[idx]
@@ -34,11 +34,11 @@ Compute the derivative of the spline parameter `s` at the time `t`.
 
     ## Arguments
 
-    - `A`: The `SmoothedLinearInterpolation` object
+    - `A`: The `CSmoothedLinearInterpolation` object
     - `t`: The time point
     - `idx`: The index indicating which spline section
 """
-function S_deriv(A::SmoothedLinearInterpolation, t, idx)
+function S_deriv(A::CSmoothedLinearInterpolation, t, idx)
     (; Δt, ΔΔt, degenerate_ΔΔt, t_tilde, λ) = A.cache
     Δtᵢ = Δt[idx]
     ΔΔtᵢ = ΔΔt[idx]
@@ -61,16 +61,16 @@ Compute the spline value `u` at the time `t`.
 
     ## Arguments
 
-    - `A`: The `SmoothedLinearInterpolation` object
+    - `A`: The `CSmoothedLinearInterpolation` object
     - `t`: The time point
     - `idx`: The index indicating which spline section
 """
-function U(A::SmoothedLinearInterpolation, t, idx)
+function U(A::CSmoothedLinearInterpolation, t, idx)
     s = S(A, t, idx)
     return U_s(A, s, idx)
 end
 
-function U_deriv(A::SmoothedLinearInterpolation, t, idx)
+function U_deriv(A::CSmoothedLinearInterpolation, t, idx)
     s = S(A, t, idx)
     s_deriv = S_deriv(A, t, idx)
     return U_s_deriv(A, s, idx) * s_deriv
@@ -83,7 +83,7 @@ Compute the spline value `u` from the spline parameter `s`.
 
     ## Arguments
 
-    - `A`: The `SmoothedLinearInterpolation` object
+    - `A`: The `CSmoothedLinearInterpolation` object
     - `s`: The spline parameter value
     - `idx`: The index indicating which spline section
 """
@@ -101,7 +101,7 @@ Compute the derivative of the spline value `u` at the spline parameter value `s`
 
     ## Arguments
 
-    - `A`: The `SmoothedLinearInterpolation` object
+    - `A`: The `CSmoothedLinearInterpolation` object
     - `s`: The spline parameter value
     - `idx`: The index indicating which spline section
 """
@@ -118,7 +118,7 @@ of a spline section
 
 Vdiff = c4 * s^4 + c3 * s^3 + c2 * s^2 + c1 * s + c0
 """
-function get_quartic_coefficients(A::SmoothedLinearInterpolation, idx::Number)
+function get_quartic_coefficients(A::CSmoothedLinearInterpolation, idx::Number)
     (; Δu, Δt, ΔΔu, ΔΔt, u_tilde, λ) = A.cache
 
     i = 2 * idx
@@ -151,11 +151,11 @@ Compute the time `t` from the spline parameter `s`.
 
     ## Arguments
 
-    - `A`: The `SmoothedLinearInterpolation` object
+    - `A`: The `CSmoothedLinearInterpolation` object
     - `s`: The spline parameter value
     - `idx`: The index indicating which spline section
 """
-function T_s(A::SmoothedLinearInterpolationIntInv, s, idx)
+function T_s(A::CSmoothedLinearInterpolationIntInv, s, idx)
     (; Δt, ΔΔt, t_tilde, λ) = A.cache
     Δtᵢ = Δt[idx]
     ΔΔtᵢ = ΔΔt[idx]
@@ -305,25 +305,25 @@ function get_spline_ends(u, Δu, λ)
 end
 
 """
-    LinearInterpolation(A::SmoothedLinearInterpolation; n_samples = 10)
+    CLinearInterpolation(A::CSmoothedLinearInterpolation; n_samples = 10)
 
-Converting a SmoothedLinearInterpolation object into LinearInterpolation object
+Converting a CSmoothedLinearInterpolation object into LinearInterpolation object
 by sampling the spline sections. The main usage of this is that a LinearInterpolation
 and especially its integration inverse are much cheaper to evaluate than the 
 original smoothed equivalents.
 
 Arguments
 
-  - `A`: The SmoothedLinearInterpolation object
+  - `A`: The CSmoothedLinearInterpolation object
 
 ## Keyword Arguments
 
   - `n_samples`: The number of samples per spline section
 """
-function DataInterpolations.LinearInterpolation(
-    A::SmoothedLinearInterpolation;
+function CLinearInterpolation(
+    A::CSmoothedLinearInterpolation;
     n_samples = 10,
-)::LinearInterpolation
+)::CLinearInterpolation
     t = zeros(2 + (length(A.t) - 2) * n_samples)
     for i in eachindex(A.t)
         if i == 1
@@ -338,7 +338,7 @@ function DataInterpolations.LinearInterpolation(
         end
     end
     u = A.(t)
-    return LinearInterpolation(u, t; A.extrapolate)
+    return CLinearInterpolation(u, t; A.extrapolate)
 end
 
 function Base.show(io::IO, cache::AbstractCache{uType}) where {uType}
@@ -369,13 +369,14 @@ function Base.show(io::IO, cache::AbstractCache{uType}) where {uType}
     end
 end
 
-function forward_itp(A::LinearInterpolationIntInv)
+function forward_itp(A::CLinearInterpolationIntInv)
     return LinearInterpolation(A.cache.u, A.u; A.extrapolate)
 end
 
-function forward_itp(A::SmoothedLinearInterpolationIntInv)
-    linear_itp = DataInterpolations.LinearInterpolation(A.cache.u, A.cache.t)
-    return SmoothedLinearInterpolation(
+function forward_itp(A::CSmoothedLinearInterpolationIntInv)
+    cache = CLinearInterpolationCache(A.cache.linear_slope, A.cache.idx_prev)
+    linear_itp = CLinearInterpolation(A.cache.u, A.cache.t, cache, A.extrapolate)
+    return CSmoothedLinearInterpolation(
         A.cache.u,
         A.cache.t,
         A.cache,

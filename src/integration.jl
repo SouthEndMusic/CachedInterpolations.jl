@@ -1,15 +1,15 @@
 """
-    integrate_spline_section(A::SmoothedLinearinterpolation, idx::Number, t::Number)
+    integrate_spline_section(A::CSmoothedLinearInterpolation, idx::Number, t::Number)
 
 Integrate the idx-th spline section from its lower time bound up to t
 
 ## Arguments
 
- - `A`: SmoothedLinearInterpolation object
+ - `A`: CSmoothedLinearInterpolation object
  - `idx`: Index of the spline section
  - `t`: upper integration bound
 """
-function integrate_spline_section(A::SmoothedLinearInterpolation, idx::Number, t::Number)
+function integrate_spline_section(A::CSmoothedLinearInterpolation, idx::Number, t::Number)
     s = S(A, t, idx)
     c4, c3, c2, c1 = get_quartic_coefficients(A, idx)
 
@@ -17,7 +17,7 @@ function integrate_spline_section(A::SmoothedLinearInterpolation, idx::Number, t
 end
 
 function DataInterpolations._integral(
-    A::SmoothedLinearInterpolation,
+    A::CSmoothedLinearInterpolation,
     idx::Number,
     t::Number,
 )
@@ -29,7 +29,7 @@ function DataInterpolations._integral(
 
     # idx of smallest idx such that A.t[idx] >= t
     idx = searchsortedfirstcorrelated(A.t, t, idx_prev[])
-    A.cache.idx_prev[] = idx
+    idx_prev[] = idx
 
     i = 2 * idx
     u_tildeᵢ₋₃ = u_tilde[i - 3]
@@ -80,4 +80,11 @@ function DataInterpolations._integral(
     # Integration of upper spline section
     out += integrate_spline_section(A, idx, t)
     return out
+end
+
+function DataInterpolations._integral(A::CLinearInterpolation, idx::Number, t::Number)
+    (; slope) = A.cache
+    idx += 1
+    tdiff = (t - A.t[idx])
+    return tdiff * (A.u[idx] + 0.5 * slope[idx] * tdiff)
 end

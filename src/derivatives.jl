@@ -1,5 +1,5 @@
 function DataInterpolations._derivative(
-    A::SmoothedLinearInterpolation{<:AbstractVector},
+    A::CSmoothedLinearInterpolation{<:AbstractVector},
     t::Number,
     iguess,
 )

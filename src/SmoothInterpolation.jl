@@ -12,9 +12,10 @@ include("integration.jl")
 include("derivatives.jl")
 include("utils.jl")
 
-export LinearInterpolationIntInv,
-    SmoothedLinearInterpolation,
-    SmoothedLinearInterpolationIntInv,
+export CLinearInterpolation,
+    CLinearInterpolationIntInv,
+    CSmoothedLinearInterpolation,
+    CSmoothedLinearInterpolationIntInv,
     LinearInterpolation,
     invert_integral
 
