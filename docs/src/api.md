@@ -1,10 +1,10 @@
 # API
 
-Documentation for `SmoothInterpolation.jl`'s public interface.
+Documentation for `CachedInterpolations.jl`'s public interface.
 
 ```@docs
-SmoothedLinearInterpolation
-LinearInterpolation(::SmoothedLinearInterpolation)
-invert_integral(::LinearInterpolation)
-invert_integral(::SmoothedLinearInterpolation)
+CSmoothedLinearInterpolation
+CLinearInterpolation(::CSmoothedLinearInterpolation)
+invert_integral(::Union{LinearInterpolation, CLinearInterpolation})
+invert_integral(::CSmoothedLinearInterpolation)
 ```

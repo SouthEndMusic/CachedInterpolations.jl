@@ -1,4 +1,4 @@
-using SmoothInterpolation: iterate_roots, p_coeff, q_coeff
+using CachedInterpolations: iterate_roots, p_coeff, q_coeff
 
 @testset "Polynomial solving" begin
     p = 0.0

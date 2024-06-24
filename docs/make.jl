@@ -1,7 +1,7 @@
-using Documenter, SmoothInterpolation
+using Documenter, CachedInterpolations
 
 makedocs(;
-    sitename = "SmoothInterpolation.jl",
+    sitename = "CachedInterpolations.jl",
     pages = [
         "Home" => "index.md",
         "Mathematical Construction" => [
@@ -21,4 +21,4 @@ makedocs(;
     ),
 )
 
-deploydocs(; repo = "github.com/SouthEndMusic/SmoothInterpolation.jl.git")
+deploydocs(; repo = "github.com/SouthEndMusic/CachedInterpolations.jl.git")

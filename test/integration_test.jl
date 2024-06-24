@@ -1,14 +1,14 @@
 using DataInterpolations
-using SmoothInterpolation
+using CachedInterpolations
 using Random
 using ForwardDiff
 
-@testset "SmoothedLinearInterpolation integration outcome" begin
+@testset "CSmoothedLinearInterpolation integration outcome" begin
     Random.seed!(1)
 
     u = rand(5)
     t = cumsum(rand(5))
-    itp = SmoothedLinearInterpolation(u, t; extrapolate = true)
+    itp = CSmoothedLinearInterpolation(u, t; extrapolate = true)
 
     # With extrapolation
     t_eval = t[1]:0.1:(t[end] + 1)
@@ -23,13 +23,13 @@ using ForwardDiff
     @test u_int ≈ u_int_num rtol = 1e-3
 end
 
-@testset "SmoothedLinearInterpolation integration derivative" begin
+@testset "CSmoothedLinearInterpolation integration derivative" begin
     Random.seed!(1)
     t = cumsum(rand(5))
 
     u = rand(5)
     t = [1.0, 2.0, 3.0, 4.0, 5.0]
-    itp = SmoothedLinearInterpolation(u, t; extrapolate = true)
+    itp = CSmoothedLinearInterpolation(u, t; extrapolate = true)
 
     # With extrapolation
     t_eval = t[1]:0.1:(t[end] + 1)
