@@ -1,4 +1,4 @@
-using SmoothInterpolation
+using CachedInterpolations
 using Random
 using ForwardDiff
 

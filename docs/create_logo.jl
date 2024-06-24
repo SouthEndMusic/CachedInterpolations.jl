@@ -1,4 +1,4 @@
-using SmoothInterpolation
+using CachedInterpolations
 using Luxor
 
 height = 500

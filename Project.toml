@@ -1,4 +1,4 @@
-name = "SmoothInterpolation"
+name = "CachedInterpolations"
 uuid = "4412c578-8aba-4b04-8c8c-6ae573ccb792"
 authors = ["Bart de Koning <bart.dekoning@deltares.nl>"]
 version = "0.1.0"

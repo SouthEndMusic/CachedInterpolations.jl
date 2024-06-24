@@ -1,4 +1,4 @@
-module SmoothInterpolation
+module CachedInterpolations
 
 using DataInterpolations:
     DataInterpolations, LinearInterpolation, AbstractInterpolation, munge_data, _interpolate
@@ -19,4 +19,4 @@ export CLinearInterpolation,
     LinearInterpolation,
     invert_integral
 
-end # SmoothInterpolation
+end # CachedInterpolations

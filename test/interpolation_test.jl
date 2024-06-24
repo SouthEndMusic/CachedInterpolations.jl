@@ -1,5 +1,5 @@
 using DataInterpolations
-using SmoothInterpolation
+using CachedInterpolations
 using Random
 
 @testset "CLinearInterpolation" begin

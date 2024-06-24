@@ -1,6 +1,6 @@
 using Random
 using DataInterpolations
-using SmoothInterpolation
+using CachedInterpolations
 using ForwardDiff
 
 @testset "CSmoothedLinearInterpolation" begin

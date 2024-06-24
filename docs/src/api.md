@@ -1,6 +1,6 @@
 # API
 
-Documentation for `SmoothInterpolation.jl`'s public interface.
+Documentation for `CachedInterpolations.jl`'s public interface.
 
 ```@docs
 CSmoothedLinearInterpolation

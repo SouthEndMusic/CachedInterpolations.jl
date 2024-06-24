@@ -5,7 +5,7 @@
 ```@example 1
 import Random # hide
 Random.seed!(2) # hide
-using SmoothInterpolation
+using CachedInterpolations
 
 u = rand(10)
 t = cumsum(rand(10))
