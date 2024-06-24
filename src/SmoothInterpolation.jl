@@ -6,7 +6,7 @@ using FindFirstFunctions: searchsortedfirstcorrelated
 using PrettyTables
 
 include("cache.jl")
-include("smoothed_linear_interpolation.jl")
+include("interpolation_methods.jl")
 include("integration_inverse.jl")
 include("integration.jl")
 include("derivatives.jl")
