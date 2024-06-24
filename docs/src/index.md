@@ -1,10 +1,13 @@
 # CachedInterpolations.jl
 
-`CachedInterpolations.jl` exports 2 interpolation types in the style of [DataInterpolations.jl](https://github.com/SciML/DataInterpolations.jl):
+`CachedInterpolations.jl` exports interpolation types in the style of [DataInterpolations.jl](https://github.com/SciML/DataInterpolations.jl):
 
+- `CLinearInterpolation`, regular old linear interpolation;
 - `CSmoothedLinearInterpolation`, a type of linear interpolation with well-behaved smoothed corners;
 - `CSmoothedLinearInterpolationIntInv`, the inverse of the antiderivative of a `CSmoothedLinearInterpolation` if it exists;
 - `CLinearInterpolationInvInv`, the inverse of the antiderivative of a `(C)LinearInterpolation` if it exists.
+
+These interpolations make as much use as possible of cached data computed at initialization, for a speed against memory usage tradeoff.
 
 ## Installation
 
@@ -18,8 +21,9 @@ pkg> add CachedInterpolations
 
 Not all features for interpolation objects from `DataInterpolations.jl` are currently supported.
 
-|                                     | Evaluation | Derivative    | Integration                                |
-| ----------------------------------- | ---------- | ------------- | ------------------------------------------ |
+|                                      | Evaluation | Derivative    | Integration                                |
+| -----------------------------------  | ---------- | ------------- | ------------------------------------------ |
+| `CLinearInterpolation`               | Supported  | Not supported | Supported                                  |
 | `CSmoothedLinearInterpolation`       | Supported  | supported     | Supported                                  |
 | `CSmoothedLinearInterpolationIntInv` | Supported  | supported     | Not supported                              |
 | `CLinearInterpolationIntInv`         | Supported  | supported     | Not supported                              |
