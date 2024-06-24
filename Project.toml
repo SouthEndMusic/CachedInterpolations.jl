@@ -1,7 +1,7 @@
 name = "CachedInterpolations"
 uuid = "4412c578-8aba-4b04-8c8c-6ae573ccb792"
 authors = ["Bart de Koning <bart.dekoning@deltares.nl>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
