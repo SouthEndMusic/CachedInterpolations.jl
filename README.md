@@ -1,4 +1,8 @@
- [![codecov](https://codecov.io/gh/SouthEndMusic/CachedInterpolations.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/SouthEndmusic/CachedInterpolations.jl)
+# Deprecated!
+
+Most of the features of this package were merged into [DataInterpolations.jl](https://github.com/SciML/DataInterpolations.jl).
+ 
+[![codecov](https://codecov.io/gh/SouthEndMusic/CachedInterpolations.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/SouthEndmusic/CachedInterpolations.jl)
 [![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://southendmusic.github.io/CachedInterpolations.jl/dev/)
 
 <img src="docs/src/assets/logo.svg" width="200">
